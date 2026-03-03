@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexFlow Project Assignment with Updated Branding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4F46E5",
+                        "background-light": "#F8FAFC",
+                        "background-dark": "#0F172A",
+                        "card-bg": "#FFFFFF",
+                        "sidebar-bg": "#0F172A",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light font-display text-slate-900 overflow-hidden">
+<div class="flex h-screen w-full">
+<aside class="w-64 bg-sidebar-bg flex flex-col h-full text-slate-300">
+<div class="p-6 flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white">deployed_code</span>
+</div>
+<div>
+<h1 class="text-white text-lg font-black leading-tight tracking-tight">NexFlow</h1>
+<p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Enterprise SaaS</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined text-[20px] fill-1">folder_managed</span>
+<span class="text-sm font-medium">Accounts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">People</span>
+</a>
+</nav>
+<div class="px-4 pb-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="text-sm font-medium">Notifications</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</div>
+<div class="p-4 border-t border-white/10">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-700 overflow-hidden" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5LYK9RUmnaNaqtElvMhJZO3ftiH0Adci2Nt8wX4Ew4wOMmZL_ZPemItZYZeMtXqGkfXLTDDwglBrjkVS1LCyMQrWLqh7kgGOBn18om4MhGo2wLpwt2W7XtIvksOnV-rFOShpNoPR8FVg-P-zdglWHngxgqZhmtYVPv5IAHyUFKm6TGjTiJ6KuRf05gy6mbK5weGp3kiBnedtWU43Y-YVuA4yLh0rfgwW0mS_mhjSKnoJQS3g4jAJGeB-Z8jDSS2JNVN_LnJpBCHk'); background-size: cover;"></div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium text-white truncate">Alex Thompson</p>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-y-auto relative">
+<header class="bg-white border-b border-slate-200 px-8 py-6">
+<div class="flex flex-wrap justify-between items-end gap-4">
+<div>
+<div class="flex items-center gap-2 text-slate-500 font-medium text-xs mb-2">
+<span>Accounts</span>
+<span class="text-slate-300">/</span>
+<span>Global Corp</span>
+<span class="text-slate-300">/</span>
+<span class="text-slate-900 font-semibold">Phoenix Core Rewrite</span>
+</div>
+<h2 class="text-3xl font-black text-slate-900 tracking-tight">Phoenix Core Rewrite</h2>
+<p class="text-slate-500 font-medium flex items-center gap-2 mt-1">
+                        Oct 2023 - June 2024
+                    </p>
+</div>
+<button class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined">person_add</span>
+<span>Assign Employee</span>
+</button>
+</div>
+</header>
+<div class="p-8 space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 text-sm font-medium">Total Allocated %</p>
+<span class="material-symbols-outlined text-primary text-xl">pie_chart</span>
+</div>
+<p class="text-3xl font-bold text-slate-900">85%</p>
+<div class="w-full bg-slate-100 h-1.5 rounded-full mt-3">
+<div class="bg-primary h-1.5 rounded-full" style="width: 85%;"></div>
+</div>
+</div>
+<div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 text-sm font-medium">Total Team Members</p>
+<span class="material-symbols-outlined text-primary text-xl">groups</span>
+</div>
+<p class="text-3xl font-bold text-slate-900">12 Members</p>
+<p class="text-xs text-green-600 font-medium mt-3 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span> +2 from last month
+                    </p>
+</div>
+<div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 text-sm font-medium">Available Capacity</p>
+<span class="material-symbols-outlined text-primary text-xl">event_available</span>
+</div>
+<p class="text-3xl font-bold text-slate-900">15%</p>
+<p class="text-xs text-slate-400 mt-3 font-medium">Current sprint workload</p>
+</div>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+<div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+<h3 class="font-bold text-slate-800">Resource Allocations</h3>
+<div class="flex gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-slate-400 text-lg">search</span>
+<input class="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-primary focus:border-primary" placeholder="Search team members..." type="text"/>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-bold border-b border-slate-100">
+<tr>
+<th class="px-6 py-4">Employee Name</th>
+<th class="px-6 py-4">Role</th>
+<th class="px-6 py-4">From Date</th>
+<th class="px-6 py-4">To Date</th>
+<th class="px-6 py-4">Allocation %</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">AR</div>
+<span class="text-sm font-semibold text-slate-900">Alex Rivera</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">Senior Developer</td>
+<td class="px-6 py-4 text-sm text-slate-600">2023-10-01</td>
+<td class="px-6 py-4 text-sm text-slate-600">2024-06-30</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3 w-32">
+<div class="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 100%;"></div>
+</div>
+<span class="text-xs font-bold text-slate-700">100%</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[11px] font-bold uppercase tracking-tight">Active</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">SC</div>
+<span class="text-sm font-semibold text-slate-900">Sarah Chen</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">UI Designer</td>
+<td class="px-6 py-4 text-sm text-slate-600">2023-10-15</td>
+<td class="px-6 py-4 text-sm text-slate-600">2024-03-01</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3 w-32">
+<div class="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 50%;"></div>
+</div>
+<span class="text-xs font-bold text-slate-700">50%</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[11px] font-bold uppercase tracking-tight">Active</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">JW</div>
+<span class="text-sm font-semibold text-slate-900">James Wilson</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">QA Lead</td>
+<td class="px-6 py-4 text-sm text-slate-600">2023-11-01</td>
+<td class="px-6 py-4 text-sm text-slate-600">2024-06-30</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3 w-32">
+<div class="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 25%;"></div>
+</div>
+<span class="text-xs font-bold text-slate-700">25%</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold uppercase tracking-tight">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">MK</div>
+<span class="text-sm font-semibold text-slate-900">Maria Kovac</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">Product Manager</td>
+<td class="px-6 py-4 text-sm text-slate-600">2023-12-01</td>
+<td class="px-6 py-4 text-sm text-slate-600">2024-05-30</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3 w-32">
+<div class="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 75%;"></div>
+</div>
+<span class="text-xs font-bold text-slate-700">75%</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-tight">On Leave</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex justify-between items-center">
+<p class="text-xs text-slate-500 font-medium">Showing 4 of 12 employees</p>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 border border-slate-200 rounded text-xs font-bold text-slate-600 hover:bg-white disabled:opacity-50 transition-colors">Previous</button>
+<button class="px-3 py-1.5 border border-slate-200 rounded text-xs font-bold text-slate-600 hover:bg-white transition-colors">Next</button>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4 overflow-y-auto">
+<div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-white/20">
+<div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+<div>
+<h3 class="text-xl font-black text-slate-900 tracking-tight">Assign Employee</h3>
+<p class="text-sm text-slate-500 font-medium">Add a new resource to Phoenix Core Rewrite</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-8 space-y-5">
+<div class="space-y-1.5">
+<label class="text-sm font-bold text-slate-700 uppercase tracking-wider text-[11px]">Employee Name</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-slate-400">person</span>
+<select class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-primary focus:border-primary appearance-none">
+<option>Select an employee...</option>
+<option>Robert Fox - Senior Backend</option>
+<option>Eleanor Pena - Frontend Dev</option>
+<option>Guy Hawkins - DevOps</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="text-sm font-bold text-slate-700 uppercase tracking-wider text-[11px]">From Date</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-slate-400">calendar_today</span>
+<input class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-primary focus:border-primary" type="date"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-bold text-slate-700 uppercase tracking-wider text-[11px]">To Date</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-slate-400">calendar_today</span>
+<input class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-primary focus:border-primary" type="date"/>
+</div>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-sm font-bold text-slate-700 uppercase tracking-wider text-[11px]">Allocation Percentage (%)</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-slate-400">percent</span>
+<input class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-primary focus:border-primary" placeholder="e.g. 100" type="number"/>
+</div>
+<p class="text-xs text-slate-400">Maximum recommended remaining: 40%</p>
+</div>
+<div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+<div>
+<label class="text-sm font-bold text-slate-700 block">Billable Status</label>
+<p class="text-xs text-slate-500 mt-0.5">Is this allocation billable to the client?</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex gap-3 justify-end">
+<button class="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 transition-colors">Cancel</button>
+<button class="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/30 hover:bg-primary/90 transition-all">Save Assignment</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

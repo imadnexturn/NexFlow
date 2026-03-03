@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexFlow Managed Project Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5048e5",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#121121",
+                        "navy-900": "#0F172A",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full">
+<!-- Sidebar -->
+<aside class="w-64 bg-navy-900 text-slate-300 flex flex-col fixed inset-y-0 left-0">
+<div class="p-6 flex items-center gap-3">
+<div class="h-8 w-8 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl">account_tree</span>
+</div>
+<h1 class="text-white text-xl font-bold tracking-tight">NexFlow</h1>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary text-white" href="#">
+<span class="material-symbols-outlined text-xl">business_center</span>
+<span class="text-sm font-medium">Managed Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span class="text-sm font-medium">Allocations</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">database</span>
+<span class="text-sm font-medium">Resources</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-800">
+<div class="flex items-center gap-3 px-3 py-2">
+<div class="size-8 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+<img class="size-full object-cover" data-alt="Professional profile headshot for Alex Thompson" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXhhI0ImtK35C3tl_lpOQlhF0VkoQys09uXG3y8TJAy45IDFWPuMzzUu_PCfqcfU7qi3Gol77pGiWz5ZhJUpBYf5shebq-is-znXRuG4fLh3vceGgwNoCplEPJDGObpevUchy-apw3vaVyP4GonbDnU61uD3rOfI3tdxIeJJg8Hz_xhgRT790cZgCaZPJp9kozZbPo0d_nqtlPHATh_b7qCFdRyoubHa0wH1JyEmJEez1yAuuuLu5QYmdzoALNSVb7KLqYp35I_gY"/>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-medium text-white">Alex Thompson</p>
+<p class="text-xs text-slate-400">Enterprise Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 flex-1 flex flex-col p-8">
+<!-- Navigation Back Link -->
+<div class="mb-6">
+<a class="inline-flex items-center gap-2 text-primary text-sm font-medium hover:underline" href="#">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+                    Back to Managed Projects
+                </a>
+</div>
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-3xl font-black tracking-tight text-slate-900">Project Alpha</h2>
+<p class="text-slate-500 font-medium">Global Corp • High Priority</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all">
+<span class="material-symbols-outlined text-sm">settings</span>
+                        Project Settings
+                    </button>
+</div>
+</div>
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-1">
+<p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Total Allocated %</p>
+<p class="text-3xl font-bold text-slate-900">85%</p>
+<div class="mt-2 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+</div>
+<div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-1">
+<p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Total Team Members</p>
+<p class="text-3xl font-bold text-slate-900">12</p>
+<p class="text-xs text-green-600 font-medium mt-2">+2 from last month</p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-1">
+<p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Available Capacity</p>
+<p class="text-3xl font-bold text-slate-900">15%</p>
+<p class="text-xs text-slate-400 mt-2">Critical resource gap in Backend</p>
+</div>
+</div>
+<!-- Main Content Card -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+<h3 class="text-lg font-bold text-slate-900">Resource Allocations</h3>
+<button class="bg-primary text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-base">person_add</span>
+                        Assign Employee
+                    </button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50 border-b border-slate-100">
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Employee Name</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Role</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">From Date</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">To Date</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Allocation %</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-10 rounded-full object-cover" data-alt="Avatar of Sarah Chen, Project Manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAm5B8s6A4lJB5zSUgL1oTTx7wfCA2Y_QCyabNqwuMIe5Motfs41MNvnzHx7xT8m4waBfe-Di52PNz1XkOqvCKOgCe_rdCycmuljLgyQ4uG-aE4ko2mkr79GzCHjtRZu7O9IOZhPnRGDJWWPWhIVu3itchTQ453szeXCeUBdLdZqI2RZc-d_BtwEeUDkOas2zTX5NN0XCrZwaybTD_7T1gaqaQOxq4ET3zXhfsmRUCyPzMsqynoSAx-WMLmYb6p02XOQ_uPjlc5xyQ"/>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-900">Sarah Chen</span>
+<span class="text-xs text-slate-500">sarah.c@globalcorp.com</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 font-medium">Sr. Project Manager</td>
+<td class="px-6 py-4 text-sm text-slate-600">Jan 12, 2024</td>
+<td class="px-6 py-4 text-sm text-slate-600">Dec 30, 2024</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5 min-w-[120px]">
+<div class="flex justify-between text-[10px] font-bold text-slate-500">
+<span>100%</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-full"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700">Active</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-4 text-sm">
+<button class="text-primary font-bold hover:underline">Edit</button>
+<button class="text-red-500 font-bold hover:underline">Remove</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-10 rounded-full object-cover" data-alt="Avatar of Marcus Aurelius, Backend Developer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBalbgu3MUOCXLGH6495v7vje1QA-XdyakJMusU0sVl9lGbMh0ddn84b_QmyIjv-JHdCUR1P8FiCHYr3EqsWwegdfzwfLnsuY99keAMMAdvPfLsAdWkCXUJhL7jylmYXJCDSmrp9GY-sMS_0fKl37Z0hn0OG-RG0--cv6SWS3JsrYZaRNgBIHLU7BpQCPuxlp6NdW8XjbCK1qEYKBA0Hb3Itfin3hZAbssYNEYts204UjXhP7-KuCmz1yzf4OzotaMyzJ1Sl0-wjYY"/>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-900">Marcus Aurelius</span>
+<span class="text-xs text-slate-500">m.aurelius@globalcorp.com</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 font-medium">Backend Lead</td>
+<td class="px-6 py-4 text-sm text-slate-600">Feb 01, 2024</td>
+<td class="px-6 py-4 text-sm text-slate-600">Nov 15, 2024</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5 min-w-[120px]">
+<div class="flex justify-between text-[10px] font-bold text-slate-500">
+<span>50%</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-1/2"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-700">Upcoming</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-4 text-sm">
+<button class="text-primary font-bold hover:underline">Edit</button>
+<button class="text-red-500 font-bold hover:underline">Remove</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-10 rounded-full object-cover" data-alt="Avatar of Elena Rodriguez, UI Designer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFYshZYhNIScV_GIauWXjO7aBjeoEEr22e3S0Tu14Qb4CnT6e0XVxvQ_D4Hf2aD41sGusttGGclkQiA5OutUVBMn9i3AeXsOak4uB9X8c6LhDfpqnXsqYE-8pIYQek12pxIMoAner62di7AKaxdM4vudEaUP3SdMZcVLh0GUfp5fKcxKA8u01z9Z39pNr4tMwl9-_MSnUoOXqj2h4Z-nRtXsY4UFwr-p0dqne9wDoTGqpSPeaTZ1p0wiBXTp0cR08dedpLJsxZ7Ok"/>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-900">Elena Rodriguez</span>
+<span class="text-xs text-slate-500">elena.r@globalcorp.com</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 font-medium">UI/UX Designer</td>
+<td class="px-6 py-4 text-sm text-slate-600">Jan 01, 2024</td>
+<td class="px-6 py-4 text-sm text-slate-600">Mar 15, 2024</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5 min-w-[120px]">
+<div class="flex justify-between text-[10px] font-bold text-slate-500">
+<span>75%</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[75%]"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-600">Completed</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-4 text-sm">
+<button class="text-primary font-bold hover:underline">Edit</button>
+<button class="text-red-500 font-bold hover:underline">Remove</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-10 rounded-full object-cover" data-alt="Avatar of David Kim, QA Lead" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXqJfHFCrnUw5C75nDFtSc8BoDErp5DjSdbIIzcs5nhv_6bbmarQ_Ci2t7gYSu_og7zLkkkO9gTF5Oa0-OMPnvIvs3YSwcdz3FXBwl663-Pk4TC7pp9o59zR-o_tPii_qt0wf_DDFeF0_LN1GrY5rg_W0wuVgNd8yp8cFhwtWNG3cMNpCfMpgFQRyHvFvr5jMlcUJD3jdP3TWHr8lB_E1zY73HLMhbDMJPs83IQEexmgeemZVTTQu2gQeRc4WXuKGHgdpxC0OW4H0"/>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-900">David Kim</span>
+<span class="text-xs text-slate-500">david.kim@globalcorp.com</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 font-medium">QA Specialist</td>
+<td class="px-6 py-4 text-sm text-slate-600">Mar 20, 2024</td>
+<td class="px-6 py-4 text-sm text-slate-600">Dec 20, 2024</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5 min-w-[120px]">
+<div class="flex justify-between text-[10px] font-bold text-slate-500">
+<span>100%</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-full"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700">Active</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-4 text-sm">
+<button class="text-primary font-bold hover:underline">Edit</button>
+<button class="text-red-500 font-bold hover:underline">Remove</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination/Footer -->
+<div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+<p class="text-xs font-medium text-slate-500">Showing 4 of 12 allocations</p>
+<div class="flex gap-2">
+<button class="size-8 rounded border border-slate-200 bg-white flex items-center justify-center text-slate-400 disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-base">chevron_left</span>
+</button>
+<button class="size-8 rounded border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50">
+<span class="material-symbols-outlined text-base">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
