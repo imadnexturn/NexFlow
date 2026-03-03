@@ -5,6 +5,8 @@ import { Provider } from 'react-redux'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { store } from '@/store/store'
 import { setToken } from '@/store/api/api-slice'
+import AppLayout from '@/components/layout/app-layout'
+import DashboardPage from '@/pages/dashboard-page'
 
 /**
  * OIDC configuration — reads from Vite env vars.
@@ -32,6 +34,8 @@ const oidcConfig = {
  * Inner app content — must be inside AuthProvider to use useAuth().
  * Syncs the OIDC access token into the RTK Query API slice
  * so fetchBaseQuery can inject it into every request.
+ *
+ * Auth guard: unauthenticated users are redirected to Keycloak login.
  */
 function AppContent() {
     const auth = useAuth()
@@ -39,6 +43,17 @@ function AppContent() {
     useEffect(() => {
         setToken(auth.user?.access_token ?? null)
     }, [auth.user?.access_token])
+
+    // Auto-redirect to Keycloak login when not authenticated
+    useEffect(() => {
+        if (
+            !auth.isLoading &&
+            !auth.isAuthenticated &&
+            !auth.activeNavigator
+        ) {
+            void auth.signinRedirect()
+        }
+    }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator])
 
     if (auth.isLoading) {
         return (
@@ -50,9 +65,25 @@ function AppContent() {
 
     if (auth.error) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4">
                 <p className="text-destructive">
                     Auth error: {auth.error.message}
+                </p>
+                <button
+                    onClick={() => void auth.signinRedirect()}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                >
+                    Try again
+                </button>
+            </div>
+        )
+    }
+
+    if (!auth.isAuthenticated) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <p className="text-muted-foreground">
+                    Redirecting to login…
                 </p>
             </div>
         )
@@ -60,21 +91,17 @@ function AppContent() {
 
     return (
         <Routes>
-            {/* Placeholder routes — expanded in Phase 10 */}
-            <Route
-                path="/"
-                element={<Navigate to="/dashboard" replace />}
-            />
-            <Route
-                path="/dashboard"
-                element={
-                    <div className="p-8">
-                        <h1 className="text-2xl font-bold">
-                            Dashboard
-                        </h1>
-                    </div>
-                }
-            />
+            <Route element={<AppLayout />}>
+                <Route
+                    path="/"
+                    element={<Navigate to="/dashboard" replace />}
+                />
+                <Route
+                    path="/dashboard"
+                    element={<DashboardPage />}
+                />
+                {/* Phase 6–7 pages will be added here */}
+            </Route>
             <Route
                 path="*"
                 element={<Navigate to="/dashboard" replace />}
