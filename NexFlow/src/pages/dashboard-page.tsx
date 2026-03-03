@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Download, Filter } from 'lucide-react'
 import { useGetMyAllocationsQuery } from '@/store/api/employees-api'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
@@ -11,14 +11,13 @@ import SearchInput from '@/components/shared/search-input'
 import StatCard from '@/components/shared/stat-card'
 import DataTable from '@/components/shared/data-table'
 import type { ColumnDef } from '@/components/shared/data-table'
-import StatusBadge from '@/components/shared/status-badge'
 import AllocationProgressBar from '@/components/shared/allocation-progress-bar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { Allocation, AllocationRecordStatus } from '@/types'
+import type { Allocation } from '@/types'
 
-type DashboardStatusFilter = 'All' | AllocationRecordStatus
+type DashboardStatusFilter = 'All' | 'Active' | 'Upcoming' | 'Ended'
 
 const STATUS_OPTIONS: DashboardStatusFilter[] = [
     'All',
@@ -27,13 +26,48 @@ const STATUS_OPTIONS: DashboardStatusFilter[] = [
     'Ended',
 ]
 
+/**
+ * Derive allocation record status from dates.
+ * Active = fromDate ≤ today ≤ toDate (or toDate is null).
+ * Upcoming = fromDate > today.
+ * Ended = toDate < today.
+ */
+function deriveStatus(allocation: Allocation): 'Active' | 'Upcoming' | 'Ended' {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const from = new Date(allocation.fromDate)
+    from.setHours(0, 0, 0, 0)
+
+    if (from > today) return 'Upcoming'
+
+    if (allocation.toDate) {
+        const to = new Date(allocation.toDate)
+        to.setHours(0, 0, 0, 0)
+        if (to < today) return 'Ended'
+    }
+
+    return 'Active'
+}
+
+/**
+ * Format ISO date string to readable format.
+ */
+function formatDate(dateStr: string): string {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+    })
+}
+
 const columns: ColumnDef<Allocation>[] = [
     {
-        accessorKey: 'accountCode',
-        header: 'Account Name',
+        accessorKey: 'projectCode',
+        header: 'Project Code',
         cell: (row) => (
             <span className="text-sm font-semibold text-slate-900">
-                {row.accountCode}
+                {row.projectCode}
             </span>
         ),
     },
@@ -47,34 +81,10 @@ const columns: ColumnDef<Allocation>[] = [
         ),
     },
     {
-        accessorKey: 'roleOnProject',
-        header: 'Role',
-        cell: (row) => (
-            <span className="text-sm text-slate-600">
-                {row.roleOnProject ?? '—'}
-            </span>
-        ),
-    },
-    {
         accessorKey: 'percentage',
         header: 'Allocation %',
         cell: (row) => (
             <AllocationProgressBar percentage={row.percentage} />
-        ),
-    },
-    {
-        accessorKey: 'billable',
-        header: 'Billable',
-        cell: (row) => (
-            <span
-                className={
-                    row.billable
-                        ? 'px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded border border-emerald-100 uppercase'
-                        : 'px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded border border-slate-200 uppercase'
-                }
-            >
-                {row.billable ? 'Yes' : 'No'}
-            </span>
         ),
     },
     {
@@ -95,24 +105,7 @@ const columns: ColumnDef<Allocation>[] = [
             </span>
         ),
     },
-    {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: (row) => <StatusBadge status={row.status} />,
-    },
 ]
-
-/**
- * Format ISO date string to readable format.
- */
-function formatDate(dateStr: string): string {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: '2-digit',
-        year: 'numeric',
-    })
-}
 
 /**
  * Cycle to next status filter value.
@@ -132,28 +125,38 @@ function DashboardPage() {
         (state) => state.dashboardFilters,
     )
     const {
-        data: allocations,
+        data: employee,
         isLoading,
     } = useGetMyAllocationsQuery()
 
     const [page, setPage] = useState(1)
 
+    const allocations = employee?.currentAllocations ?? []
+
+    // Derive statuses for each allocation
+    const allocationsWithStatus = useMemo(
+        () =>
+            allocations.map((a) => ({
+                ...a,
+                derivedStatus: deriveStatus(a),
+            })),
+        [allocations],
+    )
+
     // Client-side filtering
-    const filteredAllocations = !allocations
-        ? []
-        : allocations.filter((a) => {
-            const matchesStatus =
-                statusFilter === 'All' || a.status === statusFilter
-            const matchesSearch =
-                !searchText ||
-                a.projectName
-                    .toLowerCase()
-                    .includes(searchText.toLowerCase()) ||
-                a.accountCode
-                    .toLowerCase()
-                    .includes(searchText.toLowerCase())
-            return matchesStatus && matchesSearch
-        })
+    const filteredAllocations = allocationsWithStatus.filter((a) => {
+        const matchesStatus =
+            statusFilter === 'All' || a.derivedStatus === statusFilter
+        const matchesSearch =
+            !searchText ||
+            (a.projectName ?? '')
+                .toLowerCase()
+                .includes(searchText.toLowerCase()) ||
+            a.projectCode
+                .toLowerCase()
+                .includes(searchText.toLowerCase())
+        return matchesStatus && matchesSearch
+    })
 
     // Pagination
     const totalCount = filteredAllocations.length
@@ -164,31 +167,24 @@ function DashboardPage() {
     )
 
     // Stat calculations
-    const activeCount = allocations
-        ? allocations.filter((a) => a.status === 'Active').length
-        : 0
-    const totalPercentage = allocations
-        ? allocations
-            .filter((a) => a.status === 'Active')
-            .reduce((sum, a) => sum + a.percentage, 0)
-        : 0
+    const activeAllocations = allocationsWithStatus.filter(
+        (a) => a.derivedStatus === 'Active',
+    )
+    const activeCount = activeAllocations.length
+    const totalPercentage = activeAllocations.reduce(
+        (sum, a) => sum + a.percentage,
+        0,
+    )
     const avgAllocation =
         activeCount > 0 ? Math.round(totalPercentage / activeCount) : 0
-    const billableCount = allocations
-        ? allocations.filter((a) => a.billable && a.status === 'Active').length
-        : 0
-    const billablePercent =
-        activeCount > 0 ? Math.round((billableCount / activeCount) * 100) : 0
-    const upcomingEndCount = allocations
-        ? allocations.filter((a) => {
-            if (!a.toDate) return false
-            const endDate = new Date(a.toDate)
-            const now = new Date()
-            const thirtyDaysLater = new Date(now)
-            thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30)
-            return endDate >= now && endDate <= thirtyDaysLater
-        }).length
-        : 0
+    const upcomingEndCount = allocationsWithStatus.filter((a) => {
+        if (!a.toDate) return false
+        const endDate = new Date(a.toDate)
+        const now = new Date()
+        const thirtyDaysLater = new Date(now)
+        thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30)
+        return endDate >= now && endDate <= thirtyDaysLater
+    }).length
 
     if (isLoading) {
         return (
@@ -240,8 +236,8 @@ function DashboardPage() {
                     value={`${avgAllocation}%`}
                 />
                 <StatCard
-                    label="Billable %"
-                    value={`${billablePercent}%`}
+                    label="Total Allocations"
+                    value={allocations.length}
                 />
                 <StatCard
                     label="Upcoming End Dates"

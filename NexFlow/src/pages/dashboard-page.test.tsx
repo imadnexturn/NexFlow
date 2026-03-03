@@ -63,7 +63,7 @@ describe('DashboardPage', () => {
             await screen.findByText('Total Active Allocations'),
         ).toBeInTheDocument()
         expect(screen.getByText('Current Allocation %')).toBeInTheDocument()
-        expect(screen.getByText('Billable %')).toBeInTheDocument()
+        expect(screen.getByText('Total Allocations')).toBeInTheDocument()
         expect(screen.getByText('Upcoming End Dates')).toBeInTheDocument()
     })
 
@@ -89,14 +89,11 @@ describe('DashboardPage', () => {
 
         expect(headerTexts).toEqual(
             expect.arrayContaining([
-                'Account Name',
+                'Project Code',
                 'Project Name',
-                'Role',
                 'Allocation %',
-                'Billable',
                 'From Date',
                 'To Date',
-                'Status',
             ]),
         )
     })

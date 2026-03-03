@@ -1,5 +1,11 @@
 import { apiSlice } from './api-slice'
-import type { Allocation, AllocationPayload, CapacityCheckResponse } from '@/types'
+import type {
+    Allocation,
+    AllocationPayload,
+    UpdateAllocationPayload,
+    StopAllocationPayload,
+    CapacityCheckResponse,
+} from '@/types'
 
 interface CheckCapacityArgs {
     empCode: string
@@ -20,7 +26,7 @@ const allocationsApi = apiSlice.injectEndpoints({
         }),
         updateAllocation: builder.mutation<
             Allocation,
-            { id: string; body: AllocationPayload }
+            { id: string; body: UpdateAllocationPayload }
         >({
             query: ({ id, body }) => ({
                 url: `/allocations/${encodeURIComponent(id)}`,
@@ -29,7 +35,18 @@ const allocationsApi = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['ProjectDetails', 'MyAllocations'],
         }),
-        deleteAllocation: builder.mutation<void, string>({
+        stopAllocation: builder.mutation<
+            Allocation,
+            { id: string; body: StopAllocationPayload }
+        >({
+            query: ({ id, body }) => ({
+                url: `/allocations/${encodeURIComponent(id)}`,
+                method: 'PATCH',
+                body,
+            }),
+            invalidatesTags: ['ProjectDetails', 'MyAllocations'],
+        }),
+        deleteAllocation: builder.mutation<Allocation, string>({
             query: (id) => ({
                 url: `/allocations/${encodeURIComponent(id)}`,
                 method: 'DELETE',
@@ -39,10 +56,9 @@ const allocationsApi = apiSlice.injectEndpoints({
         checkCapacity: builder.query<CapacityCheckResponse, CheckCapacityArgs>(
             {
                 query: ({ empCode, fromDate, toDate, excludeAllocationId }) => {
-                    const params = new URLSearchParams({
-                        empCode,
-                        fromDate,
-                    })
+                    const params = new URLSearchParams()
+                    if (empCode) params.set('empCode', empCode)
+                    if (fromDate) params.set('fromDate', fromDate)
                     if (toDate) params.set('toDate', toDate)
                     if (excludeAllocationId) {
                         params.set(
@@ -60,6 +76,7 @@ const allocationsApi = apiSlice.injectEndpoints({
 export const {
     useCreateAllocationMutation,
     useUpdateAllocationMutation,
+    useStopAllocationMutation,
     useDeleteAllocationMutation,
     useCheckCapacityQuery,
     useLazyCheckCapacityQuery,

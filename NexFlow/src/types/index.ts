@@ -1,13 +1,22 @@
-export type { Project, ProjectStatus } from './project'
+export type { Project, ProjectSummary, ProjectStatus } from './project'
 export type {
     Allocation,
     AllocationRecordStatus,
     AllocationStatus,
 } from './allocation'
-export type { Employee, EmployeeRole, AccountType } from './employee'
+export type {
+    Employee,
+    EmployeeSummary,
+    EmployeeRole,
+    AccountType,
+    SkillResponse,
+} from './employee'
 export type {
     PaginatedResponse,
+    PaginationMeta,
     ApiError,
     CapacityCheckResponse,
     AllocationPayload,
+    UpdateAllocationPayload,
+    StopAllocationPayload,
 } from './api'

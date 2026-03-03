@@ -1,5 +1,16 @@
 import { apiSlice } from './api-slice'
-import type { Employee, Allocation } from '@/types'
+import type { Employee, EmployeeSummary, PaginatedResponse } from '@/types'
+
+interface SearchEmployeesArgs {
+    search?: string
+    role?: string
+    isActive?: boolean
+    benchOnly?: boolean
+    windowFrom?: string
+    windowTo?: string
+    page?: number
+    limit?: number
+}
 
 const employeesApi = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -7,13 +18,41 @@ const employeesApi = apiSlice.injectEndpoints({
             query: () => '/employees/me',
             providesTags: ['Employee'],
         }),
-        getMyAllocations: builder.query<Allocation[], void>({
-            query: () => '/employees/me/allocations',
-            providesTags: ['MyAllocations'],
+        getMyAllocations: builder.query<Employee, void>({
+            query: () => '/employees/me',
+            providesTags: ['MyAllocations', 'Employee'],
         }),
-        searchEmployees: builder.query<Employee[], string>({
-            query: (search) =>
-                `/employees?search=${encodeURIComponent(search)}&isActive=true`,
+        searchEmployees: builder.query<
+            PaginatedResponse<EmployeeSummary>,
+            SearchEmployeesArgs
+        >({
+            query: ({
+                search,
+                role,
+                isActive,
+                benchOnly,
+                windowFrom,
+                windowTo,
+                page = 1,
+                limit = 10,
+            }) => {
+                const params = new URLSearchParams()
+                if (search) params.set('search', search)
+                if (role) params.set('role', role)
+                if (isActive !== undefined) {
+                    params.set('isActive', String(isActive))
+                }
+                if (benchOnly) params.set('benchOnly', 'true')
+                if (windowFrom) params.set('windowFrom', windowFrom)
+                if (windowTo) params.set('windowTo', windowTo)
+                params.set('page', String(page))
+                params.set('limit', String(limit))
+                return `/employees?${params.toString()}`
+            },
+        }),
+        getEmployeeByCode: builder.query<Employee, string>({
+            query: (empCode) =>
+                `/employees/${encodeURIComponent(empCode)}`,
         }),
     }),
 })
@@ -23,4 +62,5 @@ export const {
     useGetMyAllocationsQuery,
     useSearchEmployeesQuery,
     useLazySearchEmployeesQuery,
+    useGetEmployeeByCodeQuery,
 } = employeesApi
