@@ -53,6 +53,7 @@ export interface AllocationPayload {
     fromDate: string
     toDate?: string
     percentage: number
+    projectRole?: string | null
 }
 
 /**
@@ -63,6 +64,7 @@ export interface UpdateAllocationPayload {
     fromDate: string
     toDate?: string
     percentage: number
+    projectRole?: string | null
 }
 
 /**

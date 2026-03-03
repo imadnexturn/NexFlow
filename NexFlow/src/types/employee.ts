@@ -1,11 +1,12 @@
 import type { Allocation, AllocationStatus } from './allocation'
+import type { ManagedProjectItem } from './project'
 
 export type EmployeeRole = 'HR' | 'ProjectManager' | 'Staff'
 export type AccountType = 'Client' | 'Internal' | 'Bench'
 
 /**
  * Employee summary as returned by the PAMS API.
- * Matches `EmployeeSummaryResponse` from api-spec v1.
+ * Matches `EmployeeSummaryResponse` from api-spec v1.9.0.
  */
 export interface EmployeeSummary {
     employeeId: string
@@ -21,23 +22,23 @@ export interface EmployeeSummary {
 
 /**
  * Employee detail as returned by the PAMS API.
- * Matches `EmployeeDetailResponse` from api-spec v1.
+ * Matches `EmployeeDetailResponse` from api-spec v1.9.0.
  */
 export interface Employee extends EmployeeSummary {
-    firstName: string | null
-    lastName: string | null
     email: string | null
+    reportsToId: string | null
     reportsToEmpCode: string | null
     reportsToName: string | null
     skillDetails: SkillResponse[]
     currentAllocations: Allocation[]
+    managedProjects: ManagedProjectItem[]
     createdAt: string
     updatedAt: string
 }
 
 /**
  * Skill detail as returned by the PAMS API.
- * Matches `SkillResponse` from api-spec v1.
+ * Matches `SkillResponse` from api-spec v1.9.0.
  */
 export interface SkillResponse {
     skillId: string

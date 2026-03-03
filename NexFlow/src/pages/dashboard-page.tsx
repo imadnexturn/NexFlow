@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Download, Filter } from 'lucide-react'
 import { useGetMyAllocationsQuery } from '@/store/api/employees-api'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
@@ -25,29 +25,6 @@ const STATUS_OPTIONS: DashboardStatusFilter[] = [
     'Upcoming',
     'Ended',
 ]
-
-/**
- * Derive allocation record status from dates.
- * Active = fromDate ≤ today ≤ toDate (or toDate is null).
- * Upcoming = fromDate > today.
- * Ended = toDate < today.
- */
-function deriveStatus(allocation: Allocation): 'Active' | 'Upcoming' | 'Ended' {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const from = new Date(allocation.fromDate)
-    from.setHours(0, 0, 0, 0)
-
-    if (from > today) return 'Upcoming'
-
-    if (allocation.toDate) {
-        const to = new Date(allocation.toDate)
-        to.setHours(0, 0, 0, 0)
-        if (to < today) return 'Ended'
-    }
-
-    return 'Active'
-}
 
 /**
  * Format ISO date string to readable format.
@@ -133,20 +110,10 @@ function DashboardPage() {
 
     const allocations = employee?.currentAllocations ?? []
 
-    // Derive statuses for each allocation
-    const allocationsWithStatus = useMemo(
-        () =>
-            allocations.map((a) => ({
-                ...a,
-                derivedStatus: deriveStatus(a),
-            })),
-        [allocations],
-    )
-
-    // Client-side filtering
-    const filteredAllocations = allocationsWithStatus.filter((a) => {
+    // Client-side filtering using API-provided status
+    const filteredAllocations = allocations.filter((a) => {
         const matchesStatus =
-            statusFilter === 'All' || a.derivedStatus === statusFilter
+            statusFilter === 'All' || a.status === statusFilter
         const matchesSearch =
             !searchText ||
             (a.projectName ?? '')
@@ -167,8 +134,8 @@ function DashboardPage() {
     )
 
     // Stat calculations
-    const activeAllocations = allocationsWithStatus.filter(
-        (a) => a.derivedStatus === 'Active',
+    const activeAllocations = allocations.filter(
+        (a) => a.status === 'Active',
     )
     const activeCount = activeAllocations.length
     const totalPercentage = activeAllocations.reduce(
@@ -177,7 +144,7 @@ function DashboardPage() {
     )
     const avgAllocation =
         activeCount > 0 ? Math.round(totalPercentage / activeCount) : 0
-    const upcomingEndCount = allocationsWithStatus.filter((a) => {
+    const upcomingEndCount = allocations.filter((a) => {
         if (!a.toDate) return false
         const endDate = new Date(a.toDate)
         const now = new Date()

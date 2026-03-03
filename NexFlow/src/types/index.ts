@@ -1,4 +1,11 @@
-export type { Project, ProjectSummary, ProjectStatus } from './project'
+export type {
+    Project,
+    ProjectSummary,
+    ProjectStatus,
+    ManagedProjectItem,
+    ManagementRole,
+    ProjectTeamMemberResponse,
+} from './project'
 export type {
     Allocation,
     AllocationRecordStatus,
