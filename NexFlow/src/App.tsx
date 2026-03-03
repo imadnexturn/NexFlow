@@ -7,6 +7,7 @@ import { store } from '@/store/store'
 import { setToken } from '@/store/api/api-slice'
 import AppLayout from '@/components/layout/app-layout'
 import DashboardPage from '@/pages/dashboard-page'
+import ManagedProjectsPage from '@/pages/managed-projects-page'
 
 /**
  * OIDC configuration — reads from Vite env vars.
@@ -100,7 +101,10 @@ function AppContent() {
                     path="/dashboard"
                     element={<DashboardPage />}
                 />
-                {/* Phase 6–7 pages will be added here */}
+                <Route
+                    path="/managed-projects"
+                    element={<ManagedProjectsPage />}
+                />
             </Route>
             <Route
                 path="*"
