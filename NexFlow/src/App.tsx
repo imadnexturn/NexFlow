@@ -130,7 +130,7 @@ function App() {
             <Provider store={store}>
                 <BrowserRouter>
                     <AppContent />
-                    <Toaster />
+                    <Toaster position="top-right" />
                 </BrowserRouter>
             </Provider>
         </AuthProvider>
