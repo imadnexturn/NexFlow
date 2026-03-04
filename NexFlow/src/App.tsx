@@ -9,6 +9,7 @@ import AppLayout from '@/components/layout/app-layout'
 import DashboardPage from '@/pages/dashboard-page'
 import ManagedProjectsPage from '@/pages/managed-projects-page'
 import ProjectDetailsPage from '@/pages/project-details-page'
+import { Toaster } from '@/components/ui/sonner'
 
 /**
  * OIDC configuration — reads from Vite env vars.
@@ -129,6 +130,7 @@ function App() {
             <Provider store={store}>
                 <BrowserRouter>
                     <AppContent />
+                    <Toaster />
                 </BrowserRouter>
             </Provider>
         </AuthProvider>
