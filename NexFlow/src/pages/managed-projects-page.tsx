@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, Plus, SlidersHorizontal } from 'lucide-react'
 import {
@@ -130,18 +130,17 @@ function ManagedProjectsPage() {
         },
     )
 
-    const uniqueAccounts = useMemo(() => {
-        const projects = allProjectsResponse?.data ?? []
-        const accountsMap = new Map<string, string>()
-        projects.forEach((p) => {
-            if (p.accountCode && p.accountName) {
-                accountsMap.set(p.accountCode, p.accountName)
-            }
-        })
-        return Array.from(accountsMap.entries()).map(
-            ([code, name]) => ({ code, name }),
-        )
-    }, [allProjectsResponse])
+    const projectsCount = allProjectsResponse?.data ?? []
+    const accountsMap = new Map<string, string>()
+    projectsCount.forEach((p) => {
+        if (p.accountCode && p.accountName) {
+            accountsMap.set(p.accountCode, p.accountName)
+        }
+    })
+
+    const uniqueAccounts = Array.from(accountsMap.entries()).map(
+        ([code, name]) => ({ code, name }),
+    )
 
     const isLoading = isLoadingMe || isLoadingProjects
 
