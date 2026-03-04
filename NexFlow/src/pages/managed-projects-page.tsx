@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Plus, SlidersHorizontal } from 'lucide-react'
+import { Eye, Plus } from 'lucide-react'
 import {
     Select,
     SelectContent,
@@ -212,24 +212,26 @@ function ManagedProjectsPage() {
                         </SelectContent>
                     </Select>
 
-                    <button
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600"
-                        aria-label={`Status: ${statusFilter || 'All'}`}
-                        onClick={() => {
-                            dispatch(
-                                setStatusFilter(
-                                    statusFilter ? '' : statusFilter,
-                                ),
-                            )
+                    <Select
+                        value={statusFilter || "all"}
+                        onValueChange={(val) => {
+                            dispatch(setStatusFilter(val === "all" ? '' : val))
                             setPage(1)
                         }}
                     >
-                        <span>
-                            Status:{' '}
-                            {statusFilter || 'All'}
-                        </span>
-                        <SlidersHorizontal className="w-4 h-4" aria-hidden />
-                    </button>
+                        <SelectTrigger
+                            className="w-[160px] h-[40px] bg-white text-slate-600 border-slate-200"
+                            aria-label="Status"
+                        >
+                            <SelectValue placeholder="Status: All" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Status: All</SelectItem>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="Upcoming">Upcoming</SelectItem>
+                            <SelectItem value="Completed">Completed</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
