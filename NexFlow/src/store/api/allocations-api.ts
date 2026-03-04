@@ -5,6 +5,7 @@ import type {
     UpdateAllocationPayload,
     StopAllocationPayload,
     CapacityCheckResponse,
+    PaginatedResponse,
 } from '@/types'
 
 interface CheckCapacityArgs {
@@ -14,8 +15,40 @@ interface CheckCapacityArgs {
     excludeAllocationId?: string
 }
 
+interface GetAllocationsArgs {
+    empCode?: string
+    projectManagerEmpCode?: string
+    status?: string
+    billable?: boolean
+    page?: number
+    limit?: number
+}
+
 const allocationsApi = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        getAllocations: builder.query<
+            PaginatedResponse<Allocation>,
+            GetAllocationsArgs
+        >({
+            query: ({
+                empCode,
+                projectManagerEmpCode,
+                status,
+                billable,
+                page = 1,
+                limit = 10,
+            }) => {
+                const params = new URLSearchParams()
+                if (empCode) params.set('empCode', empCode)
+                if (projectManagerEmpCode) params.set('projectManagerEmpCode', projectManagerEmpCode)
+                if (status && status !== 'All') params.set('status', status)
+                if (billable !== undefined) params.set('billable', String(billable))
+                params.set('page', String(page))
+                params.set('limit', String(limit))
+                return `/allocations?${params.toString()}`
+            },
+            providesTags: ['MyAllocations'],
+        }),
         createAllocation: builder.mutation<Allocation, AllocationPayload>({
             query: (body) => ({
                 url: '/allocations',
@@ -74,6 +107,7 @@ const allocationsApi = apiSlice.injectEndpoints({
 })
 
 export const {
+    useGetAllocationsQuery,
     useCreateAllocationMutation,
     useUpdateAllocationMutation,
     useStopAllocationMutation,

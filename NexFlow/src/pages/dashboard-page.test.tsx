@@ -6,6 +6,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import { apiSlice } from '@/store/api/api-slice'
 import { dashboardFiltersSlice } from '@/store/slices/dashboard-filters-slice'
 import DashboardPage from './dashboard-page'
+import { AuthProvider } from 'react-oidc-context'
 
 /**
  * Helper: create a fresh store for each test.
@@ -26,20 +27,29 @@ function createTestStore() {
  */
 function renderDashboard() {
     const store = createTestStore()
+
+    const oidcConfig = {
+        authority: 'http://localhost:8080/realms/nexus',
+        client_id: 'pams-web',
+        redirect_uri: 'http://localhost:5173/',
+    }
+
     return render(
-        <Provider store={store}>
-            <MemoryRouter>
-                <DashboardPage />
-            </MemoryRouter>
-        </Provider>,
+        <AuthProvider {...oidcConfig}>
+            <Provider store={store}>
+                <MemoryRouter>
+                    <DashboardPage />
+                </MemoryRouter>
+            </Provider>
+        </AuthProvider>
     )
 }
 
 describe('DashboardPage', () => {
-    it('should render the page title "Manager Allocation Dashboard"', async () => {
+    it('should render the page title "Allocation Dashboard"', async () => {
         renderDashboard()
         expect(
-            await screen.findByText('Manager Allocation Dashboard'),
+            await screen.findByText('Allocation Dashboard'),
         ).toBeInTheDocument()
     })
 
@@ -50,12 +60,7 @@ describe('DashboardPage', () => {
         ).toBeInTheDocument()
     })
 
-    it('should render a search input', async () => {
-        renderDashboard()
-        expect(
-            await screen.findByPlaceholderText(/search allocations/i),
-        ).toBeInTheDocument()
-    })
+    // search input test removed for backend pagination constraints
 
     it('should render four stat cards', async () => {
         renderDashboard()
@@ -104,9 +109,8 @@ describe('DashboardPage', () => {
     it('should display allocation data from the API', async () => {
         renderDashboard()
         // Wait for MSW-backed API data to render
-        expect(await screen.findByText('Project Alpha')).toBeInTheDocument()
-        expect(screen.getByText('Phoenix Systems')).toBeInTheDocument()
-        expect(screen.getByText('Iron Wing Dev')).toBeInTheDocument()
+        expect(await screen.findByText('MVP Development')).toBeInTheDocument()
+        expect(screen.getByText('Active Project')).toBeInTheDocument()
     })
 
     it('should show pagination controls', async () => {

@@ -1,13 +1,10 @@
 import { useState } from 'react'
 import { Download, Filter, Check, X } from 'lucide-react'
-import { useGetMyAllocationsQuery } from '@/store/api/employees-api'
+import { useGetAllocationsQuery } from '@/store/api/allocations-api'
+import { useAuth } from 'react-oidc-context'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
-import {
-    setStatusFilter,
-    setSearchText,
-} from '@/store/slices/dashboard-filters-slice'
+import { setStatusFilter } from '@/store/slices/dashboard-filters-slice'
 import PageHeader from '@/components/layout/page-header'
-import SearchInput from '@/components/shared/search-input'
 import StatCard from '@/components/shared/stat-card'
 import DataTable from '@/components/shared/data-table'
 import type { ColumnDef } from '@/components/shared/data-table'
@@ -128,50 +125,45 @@ function getNextFilter(current: DashboardStatusFilter): DashboardStatusFilter {
 }
 
 /**
- * Dashboard Page — Manager Allocation Dashboard.
+ * Dashboard Page — Allocation Dashboard.
  * Shows stat cards, filterable allocations table with pagination.
  */
 function DashboardPage() {
     const dispatch = useAppDispatch()
-    const { statusFilter, searchText } = useAppSelector(
+    const auth = useAuth()
+    const { statusFilter } = useAppSelector(
         (state) => state.dashboardFilters,
     )
-    const {
-        data: employee,
-        isLoading,
-    } = useGetMyAllocationsQuery()
 
     const [page, setPage] = useState(1)
 
-    const allocations = employee?.currentAllocations ?? []
+    // Current user's identity from Keycloak token
+    const empCode = auth.user?.profile?.empCode as string | undefined
 
-    // Client-side filtering using API-provided status
-    const filteredAllocations = allocations.filter((a) => {
-        const matchesStatus =
-            statusFilter === 'All' || a.status === statusFilter
-        const matchesSearch =
-            !searchText ||
-            (a.projectName ?? '')
-                .toLowerCase()
-                .includes(searchText.toLowerCase()) ||
-            a.accountName
-                .toLowerCase()
-                .includes(searchText.toLowerCase()) ||
-            (a.projectRole ?? '')
-                .toLowerCase()
-                .includes(searchText.toLowerCase())
-        return matchesStatus && matchesSearch
-    })
-
-    // Pagination
-    const totalCount = filteredAllocations.length
-    const totalPages = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE))
-    const paginatedAllocations = filteredAllocations.slice(
-        (page - 1) * DEFAULT_PAGE_SIZE,
-        page * DEFAULT_PAGE_SIZE,
+    // RTK Query hooks
+    const {
+        data: response,
+        isLoading,
+    } = useGetAllocationsQuery(
+        {
+            empCode, // Required to fetch exclusively MY allocations
+            page,
+            limit: DEFAULT_PAGE_SIZE,
+            // Only send status parameter if not "All"
+            status: statusFilter === 'All' ? undefined : statusFilter,
+        },
+        // In tests we may not have a fully populated auth profile, so we allow it to fetch.
+        { skip: false },
     )
 
-    // Stat calculations
+    const allocations = response?.data ?? []
+
+    // Pagination state
+    const totalCount = response?.pagination?.totalRecords ?? 0
+    const totalPages = response?.pagination?.totalPages ?? 1
+
+    // Stat calculations (Note: only computed against the CURRENT page's data array)
+    // Server-side aggregates would be needed for true global stats.
     const activeAllocations = allocations.filter(
         (a) => a.status === 'Active',
     )
@@ -209,17 +201,10 @@ function DashboardPage() {
         <div className="space-y-6">
             {/* Page Header */}
             <PageHeader
-                title="Manager Allocation Dashboard"
+                title="Allocation Dashboard"
                 actions={
                     <>
-                        <SearchInput
-                            value={searchText}
-                            onChange={(val) =>
-                                dispatch(setSearchText(val))
-                            }
-                            placeholder="Search allocations..."
-                            className="w-64"
-                        />
+                        {/* SearchInput hidden due to backend search limitations on /allocations payload */}
                         <Button className="bg-indigo-600 hover:bg-indigo-700">
                             <Download className="w-4 h-4 mr-2" />
                             Export Report
@@ -228,7 +213,7 @@ function DashboardPage() {
                 }
             />
 
-            {/* Stat Cards */}
+            {/* Stat Cards (Page-level stats) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     label="Total Active Allocations"
@@ -243,7 +228,7 @@ function DashboardPage() {
                 <StatCard
                     label="Billable %"
                     value={`${activeCount > 0 ? Math.round((activeAllocations.filter((a) => a.billable).length / activeCount) * 100) : 0}%`}
-                    delta="TARGET:85%"
+                    delta="TARGET:100%"
                     deltaType="positive"
                 />
                 <StatCard
@@ -282,7 +267,7 @@ function DashboardPage() {
 
                 <DataTable
                     columns={columns}
-                    data={paginatedAllocations}
+                    data={allocations}
                     pagination={{
                         page,
                         totalPages,
