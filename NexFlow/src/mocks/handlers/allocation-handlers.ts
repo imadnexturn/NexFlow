@@ -56,4 +56,47 @@ export const allocationHandlers = [
             { status: 201 },
         )
     }),
+    http.put(`${BASE_URL}/allocations/:id`, async ({ request, params }) => {
+        const body = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({
+            allocationId: params.id,
+            employeeId: 'emp-uuid-updated',
+            empCode: 'EMP010',
+            employeeName: 'Sarah Chen',
+            projectRole: body.projectRole ?? null,
+            projectId: 'proj-uuid-001',
+            projectCode: 'PRJ-2024-001',
+            projectName: 'Cloud Migration 2.0',
+            billable: true,
+            accountCode: 'ACC-GTS',
+            accountName: 'Global Tech Solutions',
+            percentage: body.percentage,
+            fromDate: body.fromDate,
+            toDate: body.toDate ?? null,
+            status: 'Active',
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: new Date().toISOString(),
+        })
+    }),
+    http.patch(`${BASE_URL}/allocations/:id`, ({ params }) => {
+        return HttpResponse.json({
+            allocationId: params.id,
+            employeeId: 'emp-uuid-stopped',
+            empCode: 'EMP010',
+            employeeName: 'Sarah Chen',
+            projectRole: null,
+            projectId: 'proj-uuid-001',
+            projectCode: 'PRJ-2024-001',
+            projectName: 'Cloud Migration 2.0',
+            billable: true,
+            accountCode: 'ACC-GTS',
+            accountName: 'Global Tech Solutions',
+            percentage: 100,
+            fromDate: '2024-01-12',
+            toDate: new Date().toISOString().split('T')[0],
+            status: 'Ended',
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: new Date().toISOString(),
+        })
+    }),
 ]

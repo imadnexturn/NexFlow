@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
     ArrowLeft,
@@ -15,6 +15,8 @@ import AllocationProgressBar from '@/components/shared/allocation-progress-bar'
 import DataTable from '@/components/shared/data-table'
 import type { ColumnDef } from '@/components/shared/data-table'
 import AssignEmployeeModal from '@/components/modals/assign-employee-modal'
+import EditAllocationModal from '@/components/modals/edit-allocation-modal'
+import StopAllocationDialog from '@/components/modals/stop-allocation-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
@@ -32,77 +34,6 @@ function formatDate(dateStr: string): string {
     })
 }
 
-const columns: ColumnDef<Allocation>[] = [
-    {
-        accessorKey: 'employeeName',
-        header: 'Employee Name',
-        cell: (row) => (
-            <span className="text-sm font-semibold text-slate-900">
-                {row.employeeName ?? '—'}
-            </span>
-        ),
-    },
-    {
-        accessorKey: 'projectRole',
-        header: 'Role',
-        cell: (row) => (
-            <span className="text-sm font-medium text-slate-600">
-                {row.projectRole ?? '—'}
-            </span>
-        ),
-    },
-    {
-        accessorKey: 'fromDate',
-        header: 'From Date',
-        cell: (row) => (
-            <span className="text-sm text-slate-600">
-                {formatDate(row.fromDate)}
-            </span>
-        ),
-    },
-    {
-        accessorKey: 'toDate',
-        header: 'To Date',
-        cell: (row) => (
-            <span className="text-sm text-slate-600">
-                {row.toDate ? formatDate(row.toDate) : '—'}
-            </span>
-        ),
-    },
-    {
-        accessorKey: 'percentage',
-        header: 'Allocation %',
-        cell: (row) => (
-            <AllocationProgressBar percentage={row.percentage} />
-        ),
-    },
-    {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-        accessorKey: 'allocationId',
-        header: 'Actions',
-        cell: () => (
-            <div className="flex items-center gap-3">
-                <button
-                    className="text-indigo-600 hover:text-indigo-800 transition-colors"
-                    aria-label="Edit allocation"
-                >
-                    <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                    className="text-red-500 hover:text-red-700 transition-colors"
-                    aria-label="Remove allocation"
-                >
-                    <Trash2 className="w-4 h-4" />
-                </button>
-            </div>
-        ),
-    },
-]
-
 /**
  * Project Details Page — shows project info, stat cards,
  * and resource allocations table for a specific project.
@@ -117,7 +48,105 @@ function ProjectDetailsPage() {
     })
 
     const [page, setPage] = useState(1)
-    const [modalOpen, setModalOpen] = useState(false)
+    const [assignModalOpen, setAssignModalOpen] = useState(false)
+
+    // Edit allocation state
+    const [editModalOpen, setEditModalOpen] = useState(false)
+    const [editingAllocation, setEditingAllocation] =
+        useState<Allocation | null>(null)
+
+    // Stop allocation state
+    const [stopDialogOpen, setStopDialogOpen] = useState(false)
+    const [stoppingAllocation, setStoppingAllocation] =
+        useState<Allocation | null>(null)
+
+    const handleEdit = (allocation: Allocation) => {
+        setEditingAllocation(allocation)
+        setEditModalOpen(true)
+    }
+
+    const handleStop = (allocation: Allocation) => {
+        setStoppingAllocation(allocation)
+        setStopDialogOpen(true)
+    }
+
+    const columns: ColumnDef<Allocation>[] = useMemo(
+        () => [
+            {
+                accessorKey: 'employeeName',
+                header: 'Employee Name',
+                cell: (row) => (
+                    <span className="text-sm font-semibold text-slate-900">
+                        {row.employeeName ?? '—'}
+                    </span>
+                ),
+            },
+            {
+                accessorKey: 'projectRole',
+                header: 'Role',
+                cell: (row) => (
+                    <span className="text-sm font-medium text-slate-600">
+                        {row.projectRole ?? '—'}
+                    </span>
+                ),
+            },
+            {
+                accessorKey: 'fromDate',
+                header: 'From Date',
+                cell: (row) => (
+                    <span className="text-sm text-slate-600">
+                        {formatDate(row.fromDate)}
+                    </span>
+                ),
+            },
+            {
+                accessorKey: 'toDate',
+                header: 'To Date',
+                cell: (row) => (
+                    <span className="text-sm text-slate-600">
+                        {row.toDate ? formatDate(row.toDate) : '—'}
+                    </span>
+                ),
+            },
+            {
+                accessorKey: 'percentage',
+                header: 'Allocation %',
+                cell: (row) => (
+                    <AllocationProgressBar
+                        percentage={row.percentage}
+                    />
+                ),
+            },
+            {
+                accessorKey: 'status',
+                header: 'Status',
+                cell: (row) => <StatusBadge status={row.status} />,
+            },
+            {
+                accessorKey: 'allocationId',
+                header: 'Actions',
+                cell: (row) => (
+                    <div className="flex items-center gap-3">
+                        <button
+                            className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                            aria-label="Edit allocation"
+                            onClick={() => handleEdit(row)}
+                        >
+                            <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                            aria-label="Remove allocation"
+                            onClick={() => handleStop(row)}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
+                ),
+            },
+        ],
+        [],
+    )
 
     const allocations = project?.allocations ?? []
 
@@ -212,7 +241,7 @@ function ProjectDetailsPage() {
                     <Button
                         className="bg-indigo-600 hover:bg-indigo-700 text-white"
                         aria-label="Assign Employee"
-                        onClick={() => setModalOpen(true)}
+                        onClick={() => setAssignModalOpen(true)}
                     >
                         <UserPlus className="w-4 h-4 mr-2" />
                         Assign Employee
@@ -234,11 +263,38 @@ function ProjectDetailsPage() {
 
             {/* Assign Employee Modal */}
             <AssignEmployeeModal
-                open={modalOpen}
-                onOpenChange={setModalOpen}
+                open={assignModalOpen}
+                onOpenChange={setAssignModalOpen}
                 projectCode={projectCode ?? ''}
                 projectName={project?.projectName ?? ''}
             />
+
+            {/* Edit Allocation Modal */}
+            {editingAllocation && (
+                <EditAllocationModal
+                    open={editModalOpen}
+                    onOpenChange={(open) => {
+                        setEditModalOpen(open)
+                        if (!open) setEditingAllocation(null)
+                    }}
+                    allocation={editingAllocation}
+                />
+            )}
+
+            {/* Stop Allocation Dialog */}
+            {stoppingAllocation && (
+                <StopAllocationDialog
+                    open={stopDialogOpen}
+                    onOpenChange={(open) => {
+                        setStopDialogOpen(open)
+                        if (!open) setStoppingAllocation(null)
+                    }}
+                    allocationId={stoppingAllocation.allocationId}
+                    employeeName={
+                        stoppingAllocation.employeeName ?? 'employee'
+                    }
+                />
+            )}
         </div>
     )
 }
