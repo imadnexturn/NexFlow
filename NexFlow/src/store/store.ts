@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { apiSlice } from './api/api-slice'
+import { apiToastMiddleware } from './middleware/api-toast-middleware'
 import { dashboardFiltersSlice } from './slices/dashboard-filters-slice'
 import { projectsFiltersSlice } from './slices/projects-filters-slice'
 import { projectDetailsSlice } from './slices/project-details-slice'
@@ -12,7 +13,7 @@ export const store = configureStore({
         projectDetails: projectDetailsSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(apiSlice.middleware),
+        getDefaultMiddleware().concat(apiSlice.middleware, apiToastMiddleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>
