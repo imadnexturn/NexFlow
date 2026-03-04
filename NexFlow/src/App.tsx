@@ -8,6 +8,7 @@ import { setToken } from '@/store/api/api-slice'
 import AppLayout from '@/components/layout/app-layout'
 import DashboardPage from '@/pages/dashboard-page'
 import ManagedProjectsPage from '@/pages/managed-projects-page'
+import ProjectDetailsPage from '@/pages/project-details-page'
 
 /**
  * OIDC configuration — reads from Vite env vars.
@@ -104,6 +105,10 @@ function AppContent() {
                 <Route
                     path="/managed-projects"
                     element={<ManagedProjectsPage />}
+                />
+                <Route
+                    path="/managed-projects/:projectCode"
+                    element={<ProjectDetailsPage />}
                 />
             </Route>
             <Route

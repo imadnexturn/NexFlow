@@ -80,7 +80,8 @@ describe('ManagedProjectsPage', () => {
                 'Account Name',
                 'Project Name',
                 'Code',
-                'Billable',
+                'Role',
+                'Resources',
                 'Status',
                 'Action',
             ]),
@@ -131,6 +132,20 @@ describe('ManagedProjectsPage', () => {
         expect(screen.getByText('Upcoming')).toBeInTheDocument()
     })
 
+    it('should display management role for each project', async () => {
+        renderPage()
+        await screen.findByText('Cloud Migration 2.0')
+        const roleElements = screen.getAllByText('ProjectManager')
+        expect(roleElements.length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('should display active resource count for each project', async () => {
+        renderPage()
+        await screen.findByText('Cloud Migration 2.0')
+        // At least one resource count should be visible
+        expect(screen.getByText('8')).toBeInTheDocument()
+    })
+
     it('should show pagination info', async () => {
         renderPage()
         expect(
@@ -138,13 +153,13 @@ describe('ManagedProjectsPage', () => {
         ).toBeInTheDocument()
     })
 
-    it('should render view action buttons for each project', async () => {
+    it('should render view action links for each project', async () => {
         renderPage()
         // Wait for data
         await screen.findByText('Cloud Migration 2.0')
-        const actionButtons = screen.getAllByRole('button', {
+        const actionLinks = screen.getAllByRole('link', {
             name: /view project/i,
         })
-        expect(actionButtons.length).toBeGreaterThanOrEqual(3)
+        expect(actionLinks.length).toBeGreaterThanOrEqual(3)
     })
 })

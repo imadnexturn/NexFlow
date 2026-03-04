@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, Filter } from 'lucide-react'
+import { Download, Filter, Check, X } from 'lucide-react'
 import { useGetMyAllocationsQuery } from '@/store/api/employees-api'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import {
@@ -40,11 +40,11 @@ function formatDate(dateStr: string): string {
 
 const columns: ColumnDef<Allocation>[] = [
     {
-        accessorKey: 'projectCode',
-        header: 'Project Code',
+        accessorKey: 'accountName',
+        header: 'Account Name',
         cell: (row) => (
             <span className="text-sm font-semibold text-slate-900">
-                {row.projectCode}
+                {row.accountName}
             </span>
         ),
     },
@@ -58,10 +58,28 @@ const columns: ColumnDef<Allocation>[] = [
         ),
     },
     {
+        accessorKey: 'projectRole',
+        header: 'Role',
+        cell: (row) => (
+            <span className="text-sm text-slate-600">
+                {row.projectRole ?? '—'}
+            </span>
+        ),
+    },
+    {
         accessorKey: 'percentage',
         header: 'Allocation %',
         cell: (row) => (
             <AllocationProgressBar percentage={row.percentage} />
+        ),
+    },
+    {
+        accessorKey: 'billable',
+        header: 'Billable',
+        cell: (row) => (
+            row.billable
+                ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700"><Check className="w-3 h-3" /> Yes</span>
+                : <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700"><X className="w-3 h-3" /> No</span>
         ),
     },
     {
@@ -81,6 +99,23 @@ const columns: ColumnDef<Allocation>[] = [
                 {row.toDate ? formatDate(row.toDate) : '—'}
             </span>
         ),
+    },
+    {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: (row) => {
+            const colorMap: Record<string, string> = {
+                Active: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                Upcoming: 'bg-amber-50 text-amber-700 border-amber-200',
+                Ended: 'bg-slate-100 text-slate-500 border-slate-200',
+            }
+            const colors = colorMap[row.status] ?? 'bg-slate-100 text-slate-600'
+            return (
+                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${colors}`}>
+                    {row.status}
+                </span>
+            )
+        },
     },
 ]
 
@@ -119,7 +154,10 @@ function DashboardPage() {
             (a.projectName ?? '')
                 .toLowerCase()
                 .includes(searchText.toLowerCase()) ||
-            a.projectCode
+            a.accountName
+                .toLowerCase()
+                .includes(searchText.toLowerCase()) ||
+            (a.projectRole ?? '')
                 .toLowerCase()
                 .includes(searchText.toLowerCase())
         return matchesStatus && matchesSearch
@@ -203,8 +241,10 @@ function DashboardPage() {
                     value={`${avgAllocation}%`}
                 />
                 <StatCard
-                    label="Total Allocations"
-                    value={allocations.length}
+                    label="Billable %"
+                    value={`${activeCount > 0 ? Math.round((activeAllocations.filter((a) => a.billable).length / activeCount) * 100) : 0}%`}
+                    delta="TARGET:85%"
+                    deltaType="positive"
                 />
                 <StatCard
                     label="Upcoming End Dates"
