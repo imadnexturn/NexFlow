@@ -58,6 +58,7 @@ function AssignEmployeeModal({
     const [fromDate, setFromDate] = useState<Date | undefined>(undefined)
     const [toDate, setToDate] = useState<Date | undefined>(undefined)
     const [percentage, setPercentage] = useState('')
+    const [projectRole, setProjectRole] = useState('')
     const [billable, setBillable] = useState(false)
 
     // API hooks
@@ -106,6 +107,7 @@ function AssignEmployeeModal({
             setFromDate(undefined)
             setToDate(undefined)
             setPercentage('')
+            setProjectRole('')
             setBillable(false)
         }
     }, [open])
@@ -122,6 +124,7 @@ function AssignEmployeeModal({
                     ? format(toDate, 'yyyy-MM-dd')
                     : undefined,
                 percentage: Number(percentage),
+                projectRole: projectRole || null,
             }).unwrap()
 
             onOpenChange(false)
@@ -295,6 +298,25 @@ function AssignEmployeeModal({
                                 </PopoverContent>
                             </Popover>
                         </div>
+                    </div>
+
+                    {/* Role */}
+                    <div className="space-y-2">
+                        <label
+                            htmlFor="project-role"
+                            className="text-sm font-semibold text-slate-700 uppercase tracking-wider"
+                        >
+                            Role
+                        </label>
+                        <Input
+                            id="project-role"
+                            type="text"
+                            placeholder="e.g. Backend Lead, QA Specialist"
+                            value={projectRole}
+                            onChange={(e) =>
+                                setProjectRole(e.target.value)
+                            }
+                        />
                     </div>
 
                     {/* Allocation Percentage */}
