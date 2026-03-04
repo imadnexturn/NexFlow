@@ -1,6 +1,13 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Plus, ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { Eye, Plus, SlidersHorizontal } from 'lucide-react'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import { useGetMeQuery } from '@/store/api/employees-api'
 import { useGetManagedProjectsQuery } from '@/store/api/projects-api'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
@@ -112,6 +119,30 @@ function ManagedProjectsPage() {
         },
     )
 
+    // Fetch all projects for the manager to get unique accounts for the filter dropdown
+    const { data: allProjectsResponse } = useGetManagedProjectsQuery(
+        {
+            projectManagerEmpCode: me?.empCode,
+            limit: 100, // Max limit to get all projects
+        },
+        {
+            skip: !me?.empCode,
+        },
+    )
+
+    const uniqueAccounts = useMemo(() => {
+        const projects = allProjectsResponse?.data ?? []
+        const accountsMap = new Map<string, string>()
+        projects.forEach((p) => {
+            if (p.accountCode && p.accountName) {
+                accountsMap.set(p.accountCode, p.accountName)
+            }
+        })
+        return Array.from(accountsMap.entries()).map(
+            ([code, name]) => ({ code, name }),
+        )
+    }, [allProjectsResponse])
+
     const isLoading = isLoadingMe || isLoadingProjects
 
     const projects = projectsResponse?.data ?? []
@@ -159,24 +190,29 @@ function ManagedProjectsPage() {
                     />
                 </div>
                 <div className="flex items-center gap-3">
-                    <button
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600"
-                        aria-label={`Account: ${accountFilter || 'All'}`}
-                        onClick={() => {
-                            dispatch(
-                                setAccountFilter(
-                                    accountFilter ? '' : accountFilter,
-                                ),
-                            )
+                    <Select
+                        value={accountFilter || "all"}
+                        onValueChange={(val) => {
+                            dispatch(setAccountFilter(val === "all" ? '' : val))
                             setPage(1)
                         }}
                     >
-                        <span>
-                            Account:{' '}
-                            {accountFilter || 'All'}
-                        </span>
-                        <ChevronDown className="w-4 h-4" aria-hidden />
-                    </button>
+                        <SelectTrigger
+                            className="w-[200px] h-[40px] bg-white text-slate-600 border-slate-200"
+                            aria-label="Account"
+                        >
+                            <SelectValue placeholder="Account: All" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Account: All</SelectItem>
+                            {uniqueAccounts.map((acc) => (
+                                <SelectItem key={acc.code} value={acc.code}>
+                                    {acc.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
                     <button
                         className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600"
                         aria-label={`Status: ${statusFilter || 'All'}`}
