@@ -1,20 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-
-/**
- * Module-level token storage for fetchBaseQuery.
- * Set by App.tsx when auth state changes via react-oidc-context.
- */
-let _token: string | null = null
-
-/** Called by App.tsx to sync the OIDC access token. */
-export function setToken(token: string | null): void {
-    _token = token
-}
-
-/** Read by prepareHeaders on every API request. */
-export function getToken(): string | null {
-    return _token
-}
+import { User } from 'oidc-client-ts'
 
 /**
  * Base RTK Query API slice.
@@ -26,9 +11,24 @@ export const apiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: import.meta.env.VITE_API_BASE_URL,
         prepareHeaders: (headers) => {
-            const token = getToken()
-            if (token) {
-                headers.set('Authorization', `Bearer ${token}`)
+            // Read directly from the underlying oidc-client-ts storage
+            // This ensures tokens are immediately available and not subject to
+            // React render cycles or useEffect timing delays.
+            const authority = import.meta.env.VITE_OIDC_AUTHORITY
+            const clientId = import.meta.env.VITE_OIDC_CLIENT_ID
+            const storageKey = `oidc.user:${authority}:${clientId}`
+
+            const oidcStorage = sessionStorage.getItem(storageKey)
+
+            if (oidcStorage) {
+                try {
+                    const user = User.fromStorageString(oidcStorage)
+                    if (user && user.access_token) {
+                        headers.set('Authorization', `Bearer ${user.access_token}`)
+                    }
+                } catch (e) {
+                    console.error('Failed to parse OIDC user from storage', e)
+                }
             }
             return headers
         },

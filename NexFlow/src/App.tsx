@@ -4,7 +4,6 @@ import type { User } from 'oidc-client-ts'
 import { Provider } from 'react-redux'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { store } from '@/store/store'
-import { setToken } from '@/store/api/api-slice'
 import AppLayout from '@/components/layout/app-layout'
 import DashboardPage from '@/pages/dashboard-page'
 import ManagedProjectsPage from '@/pages/managed-projects-page'
@@ -42,10 +41,6 @@ const oidcConfig = {
  */
 function AppContent() {
     const auth = useAuth()
-
-    useEffect(() => {
-        setToken(auth.user?.access_token ?? null)
-    }, [auth.user?.access_token])
 
     // Auto-redirect to Keycloak login when not authenticated
     useEffect(() => {
