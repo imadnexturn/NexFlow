@@ -16,7 +16,7 @@ import DataTable from '@/components/shared/data-table'
 import type { ColumnDef } from '@/components/shared/data-table'
 import AssignEmployeeModal from '@/components/modals/assign-employee-modal'
 import EditAllocationModal from '@/components/modals/edit-allocation-modal'
-import StopAllocationDialog from '@/components/modals/stop-allocation-dialog'
+import DeleteAllocationDialog from '@/components/modals/delete-allocation-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
@@ -55,9 +55,9 @@ function ProjectDetailsPage() {
     const [editingAllocation, setEditingAllocation] =
         useState<Allocation | null>(null)
 
-    // Stop allocation state
-    const [stopDialogOpen, setStopDialogOpen] = useState(false)
-    const [stoppingAllocation, setStoppingAllocation] =
+    // Delete allocation state
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [deletingAllocation, setDeletingAllocation] =
         useState<Allocation | null>(null)
 
     const handleEdit = (allocation: Allocation) => {
@@ -65,9 +65,9 @@ function ProjectDetailsPage() {
         setEditModalOpen(true)
     }
 
-    const handleStop = (allocation: Allocation) => {
-        setStoppingAllocation(allocation)
-        setStopDialogOpen(true)
+    const handleDelete = (allocation: Allocation) => {
+        setDeletingAllocation(allocation)
+        setDeleteDialogOpen(true)
     }
 
     const columns: ColumnDef<Allocation>[] = useMemo(
@@ -137,7 +137,7 @@ function ProjectDetailsPage() {
                         <button
                             className="text-red-500 hover:text-red-700 transition-colors"
                             aria-label="Remove allocation"
-                            onClick={() => handleStop(row)}
+                            onClick={() => handleDelete(row)}
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
@@ -281,17 +281,17 @@ function ProjectDetailsPage() {
                 />
             )}
 
-            {/* Stop Allocation Dialog */}
-            {stoppingAllocation && (
-                <StopAllocationDialog
-                    open={stopDialogOpen}
+            {/* Delete Allocation Dialog */}
+            {deletingAllocation && (
+                <DeleteAllocationDialog
+                    open={deleteDialogOpen}
                     onOpenChange={(open) => {
-                        setStopDialogOpen(open)
-                        if (!open) setStoppingAllocation(null)
+                        setDeleteDialogOpen(open)
+                        if (!open) setDeletingAllocation(null)
                     }}
-                    allocationId={stoppingAllocation.allocationId}
+                    allocationId={deletingAllocation.allocationId}
                     employeeName={
-                        stoppingAllocation.employeeName ?? 'employee'
+                        deletingAllocation.employeeName ?? 'employee'
                     }
                 />
             )}

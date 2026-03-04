@@ -99,4 +99,7 @@ export const allocationHandlers = [
             updatedAt: new Date().toISOString(),
         })
     }),
+    http.delete(`${BASE_URL}/allocations/:id`, ({ params }) => {
+        return HttpResponse.json(null, { status: 204 })
+    }),
 ]

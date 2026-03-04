@@ -8,34 +8,29 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useStopAllocationMutation } from '@/store/api/allocations-api'
-
-interface StopAllocationDialogProps {
+import { useDeleteAllocationMutation } from '@/store/api/allocations-api'
+interface DeleteAllocationDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     allocationId: string
     employeeName: string
 }
-
 /**
- * Stop Allocation confirmation dialog.
- * Calls PATCH /allocations/{id} with { action: "stop" }.
+ * Delete Allocation confirmation dialog.
+ * Calls DELETE /allocations/{id}.
  */
-function StopAllocationDialog({
+function DeleteAllocationDialog({
     open,
     onOpenChange,
     allocationId,
     employeeName,
-}: StopAllocationDialogProps) {
-    const [stopAllocation, { isLoading }] =
-        useStopAllocationMutation()
+}: DeleteAllocationDialogProps) {
+    const [deleteAllocation, { isLoading }] =
+        useDeleteAllocationMutation()
 
-    const handleStop = async () => {
+    const handleDelete = async () => {
         try {
-            await stopAllocation({
-                id: allocationId,
-                body: { action: 'stop' },
-            }).unwrap()
+            await deleteAllocation(allocationId).unwrap()
 
             onOpenChange(false)
         } catch {
@@ -48,22 +43,21 @@ function StopAllocationDialog({
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle className="text-lg font-bold">
-                        Stop Allocation
+                        Delete Allocation
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to stop the allocation
-                        for <strong>{employeeName}</strong>? This will
-                        set the end date to today and cannot be undone.
+                        Are you sure you want to delete the resource allocation
+                        for <strong>{employeeName}</strong>? This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         className="bg-red-600 hover:bg-red-700 text-white"
-                        onClick={handleStop}
+                        onClick={handleDelete}
                         disabled={isLoading}
                     >
-                        Stop Allocation
+                        Delete Allocation
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -71,4 +65,4 @@ function StopAllocationDialog({
     )
 }
 
-export default StopAllocationDialog
+export default DeleteAllocationDialog

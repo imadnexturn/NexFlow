@@ -7,7 +7,7 @@ import { apiSlice } from '@/store/api/api-slice'
 import { dashboardFiltersSlice } from '@/store/slices/dashboard-filters-slice'
 import { projectsFiltersSlice } from '@/store/slices/projects-filters-slice'
 import { projectDetailsSlice } from '@/store/slices/project-details-slice'
-import StopAllocationDialog from './stop-allocation-dialog'
+import DeleteAllocationDialog from './delete-allocation-dialog'
 
 function createTestStore() {
     return configureStore({
@@ -39,18 +39,18 @@ function renderDialog(props?: Partial<{
     return render(
         <Provider store={store}>
             <MemoryRouter>
-                <StopAllocationDialog {...defaultProps} />
+                <DeleteAllocationDialog {...defaultProps} />
             </MemoryRouter>
         </Provider>,
     )
 }
 
-describe('StopAllocationDialog', () => {
+describe('DeleteAllocationDialog', () => {
     it('should render the dialog title', () => {
         renderDialog()
         expect(
             screen.getByRole('heading', {
-                name: /stop allocation/i,
+                name: /delete allocation/i,
             }),
         ).toBeInTheDocument()
     })
@@ -62,13 +62,13 @@ describe('StopAllocationDialog', () => {
         ).toBeInTheDocument()
     })
 
-    it('should render Cancel and Stop buttons', () => {
+    it('should render Cancel and Delete buttons', () => {
         renderDialog()
         expect(
             screen.getByRole('button', { name: /cancel/i }),
         ).toBeInTheDocument()
         expect(
-            screen.getByRole('button', { name: /stop allocation/i }),
+            screen.getByRole('button', { name: /delete allocation/i }),
         ).toBeInTheDocument()
     })
 })
