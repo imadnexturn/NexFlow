@@ -8,17 +8,43 @@ export const projectHandlers = [
         const url = new URL(request.url)
         const page = Number(url.searchParams.get('page') ?? '1')
         const limit = Number(url.searchParams.get('limit') ?? '10')
+        const search = (
+            url.searchParams.get('search') ?? ''
+        ).toLowerCase()
+        const accountCode = url.searchParams.get('accountCode') ?? ''
+        const status = url.searchParams.get('status') ?? ''
+
+        let filtered = mockProjects
+
+        if (search) {
+            filtered = filtered.filter(
+                (p) =>
+                    (p.projectName?.toLowerCase().includes(search) ??
+                        false) ||
+                    (p.accountName?.toLowerCase().includes(search) ??
+                        false) ||
+                    p.projectCode.toLowerCase().includes(search),
+            )
+        }
+        if (accountCode) {
+            filtered = filtered.filter(
+                (p) => p.accountCode === accountCode,
+            )
+        }
+        if (status) {
+            filtered = filtered.filter((p) => p.status === status)
+        }
 
         const start = (page - 1) * limit
-        const paginated = mockProjects.slice(start, start + limit)
+        const paginated = filtered.slice(start, start + limit)
 
         return HttpResponse.json({
             data: paginated,
             pagination: {
                 page,
                 limit,
-                totalRecords: mockProjects.length,
-                totalPages: Math.ceil(mockProjects.length / limit),
+                totalRecords: filtered.length,
+                totalPages: Math.ceil(filtered.length / limit),
             },
         })
     }),

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Plus, ChevronDown, SlidersHorizontal, Users } from 'lucide-react'
-import { useGetMeQuery } from '@/store/api/employees-api'
+import { Eye, Plus, ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { useGetManagedProjectsQuery } from '@/store/api/projects-api'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import {
     setSearchText,
@@ -16,9 +16,9 @@ import type { ColumnDef } from '@/components/shared/data-table'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { ManagedProjectItem } from '@/types'
+import type { ProjectSummary } from '@/types'
 
-const columns: ColumnDef<ManagedProjectItem>[] = [
+const columns: ColumnDef<ProjectSummary>[] = [
     {
         accessorKey: 'accountName',
         header: 'Account Name',
@@ -47,21 +47,16 @@ const columns: ColumnDef<ManagedProjectItem>[] = [
         ),
     },
     {
-        accessorKey: 'managementRole',
-        header: 'Role',
+        accessorKey: 'billable',
+        header: 'Billable',
         cell: (row) => (
-            <span className="text-sm text-slate-600">
-                {row.managementRole}
-            </span>
-        ),
-    },
-    {
-        accessorKey: 'activeResourceCount',
-        header: 'Resources',
-        cell: (row) => (
-            <span className="inline-flex items-center gap-1 text-sm text-slate-600">
-                <Users className="w-3.5 h-3.5" />
-                {row.activeResourceCount}
+            <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${row.billable
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'bg-slate-100 text-slate-500'
+                    }`}
+            >
+                {row.billable ? 'Yes' : 'No'}
             </span>
         ),
     },
@@ -86,50 +81,33 @@ const columns: ColumnDef<ManagedProjectItem>[] = [
 ]
 
 /**
- * Managed Projects Page — lists projects managed by the current PM.
- * Uses GET /employees/me and reads managedProjects[].
+ * Managed Projects Page — lists projects using GET /projects.
+ * Supports server-side search, account, and status filtering.
  */
 function ManagedProjectsPage() {
     const dispatch = useAppDispatch()
     const { searchText, accountFilter, statusFilter } = useAppSelector(
         (state) => state.projectsFilters,
     )
-    const {
-        data: me,
-        isLoading,
-    } = useGetMeQuery()
 
     const [page, setPage] = useState(1)
 
-    const allProjects = me?.managedProjects ?? []
-
-    // Client-side filtering
-    const filteredProjects = allProjects.filter((p) => {
-        const matchesSearch =
-            !searchText ||
-            p.projectName
-                .toLowerCase()
-                .includes(searchText.toLowerCase()) ||
-            p.accountName
-                .toLowerCase()
-                .includes(searchText.toLowerCase()) ||
-            p.projectCode
-                .toLowerCase()
-                .includes(searchText.toLowerCase())
-        const matchesStatus =
-            !statusFilter || p.status === statusFilter
-        const matchesAccount =
-            !accountFilter || p.accountCode === accountFilter
-        return matchesSearch && matchesStatus && matchesAccount
+    const {
+        data: projectsResponse,
+        isLoading,
+    } = useGetManagedProjectsQuery({
+        search: searchText || undefined,
+        accountCode: accountFilter || undefined,
+        status: statusFilter || undefined,
+        page,
+        limit: DEFAULT_PAGE_SIZE,
     })
 
-    // Client-side pagination
-    const totalCount = filteredProjects.length
-    const totalPages = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE))
-    const paginatedProjects = filteredProjects.slice(
-        (page - 1) * DEFAULT_PAGE_SIZE,
-        page * DEFAULT_PAGE_SIZE,
-    )
+    const projects = projectsResponse?.data ?? []
+    const pagination = projectsResponse?.pagination
+
+    const totalCount = pagination?.totalRecords ?? 0
+    const totalPages = pagination?.totalPages ?? 1
 
     if (isLoading) {
         return (
@@ -162,9 +140,10 @@ function ManagedProjectsPage() {
                 <div className="flex-1 min-w-[300px]">
                     <SearchInput
                         value={searchText}
-                        onChange={(val) =>
+                        onChange={(val) => {
                             dispatch(setSearchText(val))
-                        }
+                            setPage(1)
+                        }}
                         placeholder="Search projects, clients or codes..."
                     />
                 </div>
@@ -172,13 +151,14 @@ function ManagedProjectsPage() {
                     <button
                         className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600"
                         aria-label={`Account: ${accountFilter || 'All'}`}
-                        onClick={() =>
+                        onClick={() => {
                             dispatch(
                                 setAccountFilter(
                                     accountFilter ? '' : accountFilter,
                                 ),
                             )
-                        }
+                            setPage(1)
+                        }}
                     >
                         <span>
                             Account:{' '}
@@ -189,13 +169,14 @@ function ManagedProjectsPage() {
                     <button
                         className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600"
                         aria-label={`Status: ${statusFilter || 'All'}`}
-                        onClick={() =>
+                        onClick={() => {
                             dispatch(
                                 setStatusFilter(
                                     statusFilter ? '' : statusFilter,
                                 ),
                             )
-                        }
+                            setPage(1)
+                        }}
                     >
                         <span>
                             Status:{' '}
@@ -210,7 +191,7 @@ function ManagedProjectsPage() {
             <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
                 <DataTable
                     columns={columns}
-                    data={paginatedProjects}
+                    data={projects}
                     pagination={{
                         page,
                         totalPages,
@@ -224,7 +205,7 @@ function ManagedProjectsPage() {
                     <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">
                         Showing{' '}
                         {Math.min(
-                            paginatedProjects.length,
+                            projects.length,
                             DEFAULT_PAGE_SIZE,
                         )}{' '}
                         of {totalCount} projects
