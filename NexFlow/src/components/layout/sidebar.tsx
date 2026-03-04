@@ -71,7 +71,7 @@ function Sidebar() {
                         NexFlow
                     </div>
                     <div className="text-[10px] text-slate-400">
-                        Enterprise SaaS
+                        Enterprise Resource Planning
                     </div>
                 </div>
             </div>

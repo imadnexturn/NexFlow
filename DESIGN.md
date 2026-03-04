@@ -10,7 +10,7 @@
 | Property | Value |
 |---|---|
 | App Name | NexFlow |
-| Tagline | Enterprise SaaS |
+| Tagline | Enterprise Resource Planning |
 | Primary Brand Color | Indigo / Blue (`#4F46E5` / `indigo-600`) |
 | Logo | "N" icon mark in indigo, "NexFlow" wordmark |
 

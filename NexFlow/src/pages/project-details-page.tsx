@@ -14,6 +14,7 @@ import StatusBadge from '@/components/shared/status-badge'
 import AllocationProgressBar from '@/components/shared/allocation-progress-bar'
 import DataTable from '@/components/shared/data-table'
 import type { ColumnDef } from '@/components/shared/data-table'
+import AssignEmployeeModal from '@/components/modals/assign-employee-modal'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
@@ -116,6 +117,7 @@ function ProjectDetailsPage() {
     })
 
     const [page, setPage] = useState(1)
+    const [modalOpen, setModalOpen] = useState(false)
 
     const allocations = project?.allocations ?? []
 
@@ -210,6 +212,7 @@ function ProjectDetailsPage() {
                     <Button
                         className="bg-indigo-600 hover:bg-indigo-700 text-white"
                         aria-label="Assign Employee"
+                        onClick={() => setModalOpen(true)}
                     >
                         <UserPlus className="w-4 h-4 mr-2" />
                         Assign Employee
@@ -228,6 +231,14 @@ function ProjectDetailsPage() {
                     onPageChange={setPage}
                 />
             </div>
+
+            {/* Assign Employee Modal */}
+            <AssignEmployeeModal
+                open={modalOpen}
+                onOpenChange={setModalOpen}
+                projectCode={projectCode ?? ''}
+                projectName={project?.projectName ?? ''}
+            />
         </div>
     )
 }

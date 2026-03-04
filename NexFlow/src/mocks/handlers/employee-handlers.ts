@@ -57,4 +57,73 @@ export const employeeHandlers = [
             updatedAt: '2024-01-01T00:00:00Z',
         })
     }),
+    http.get(`${BASE_URL}/employees`, ({ request }) => {
+        const url = new URL(request.url)
+        const search = (url.searchParams.get('search') ?? '').toLowerCase()
+
+        const allEmployees = [
+            {
+                employeeId: 'emp-uuid-010',
+                empCode: 'EMP010',
+                fullName: 'Sarah Chen',
+                designation: 'Sr. Project Manager',
+                role: 'Staff',
+                isActive: true,
+                availabilityPercentage: 0,
+                allocationStatus: 'Full',
+                skills: ['Project Management'],
+            },
+            {
+                employeeId: 'emp-uuid-011',
+                empCode: 'EMP011',
+                fullName: 'Marcus Aurelius',
+                designation: 'Backend Lead',
+                role: 'Staff',
+                isActive: true,
+                availabilityPercentage: 50,
+                allocationStatus: 'Partial',
+                skills: ['Java', 'Spring Boot'],
+            },
+            {
+                employeeId: 'emp-uuid-012',
+                empCode: 'EMP012',
+                fullName: 'Elena Rodriguez',
+                designation: 'UI/UX Designer',
+                role: 'Staff',
+                isActive: true,
+                availabilityPercentage: 100,
+                allocationStatus: 'Bench',
+                skills: ['Figma', 'CSS'],
+            },
+            {
+                employeeId: 'emp-uuid-013',
+                empCode: 'EMP013',
+                fullName: 'David Kim',
+                designation: 'QA Specialist',
+                role: 'Staff',
+                isActive: true,
+                availabilityPercentage: 0,
+                allocationStatus: 'Full',
+                skills: ['Selenium', 'Cypress'],
+            },
+        ]
+
+        const filtered = search
+            ? allEmployees.filter(
+                (e) =>
+                    (e.fullName?.toLowerCase().includes(search) ?? false) ||
+                    e.empCode.toLowerCase().includes(search),
+            )
+            : allEmployees
+
+        return HttpResponse.json({
+            data: filtered,
+            pagination: {
+                page: 1,
+                limit: 20,
+                totalRecords: filtered.length,
+                totalPages: 1,
+            },
+        })
+    }),
 ]
