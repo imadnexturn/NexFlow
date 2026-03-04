@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, Plus, ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { useGetMeQuery } from '@/store/api/employees-api'
 import { useGetManagedProjectsQuery } from '@/store/api/projects-api'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import {
@@ -52,8 +53,8 @@ const columns: ColumnDef<ProjectSummary>[] = [
         cell: (row) => (
             <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${row.billable
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-slate-100 text-slate-500'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-slate-100 text-slate-500'
                     }`}
             >
                 {row.billable ? 'Yes' : 'No'}
@@ -92,16 +93,26 @@ function ManagedProjectsPage() {
 
     const [page, setPage] = useState(1)
 
+    const { data: me, isLoading: isLoadingMe } = useGetMeQuery()
+
     const {
         data: projectsResponse,
-        isLoading,
-    } = useGetManagedProjectsQuery({
-        search: searchText || undefined,
-        accountCode: accountFilter || undefined,
-        status: statusFilter || undefined,
-        page,
-        limit: DEFAULT_PAGE_SIZE,
-    })
+        isLoading: isLoadingProjects,
+    } = useGetManagedProjectsQuery(
+        {
+            projectManagerEmpCode: me?.empCode,
+            search: searchText || undefined,
+            accountCode: accountFilter || undefined,
+            status: statusFilter || undefined,
+            page,
+            limit: DEFAULT_PAGE_SIZE,
+        },
+        {
+            skip: !me?.empCode,
+        },
+    )
+
+    const isLoading = isLoadingMe || isLoadingProjects
 
     const projects = projectsResponse?.data ?? []
     const pagination = projectsResponse?.pagination
