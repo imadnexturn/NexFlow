@@ -26,7 +26,7 @@ NexFlow is a frontend-only enterprise web application that consumes the PAMS RES
 
 ## 3. Application Structure — 3 Pages + 1 Modal
 
-### Page 1: Dashboard (Manager Allocation Dashboard)
+### Page 1: Dashboard (Allocation Dashboard)
 **Route:** `/dashboard`
 **Design Ref:** `project_view_dashboard_screen.png`
 **API:** `GET /employees/me/allocations`
@@ -34,7 +34,7 @@ NexFlow is a frontend-only enterprise web application that consumes the PAMS RES
 This is the **personal dashboard** for the logged-in Project Manager (who is also an employee). It shows their own allocations to projects they are working on — **not** the projects they manage.
 
 **UI Components:**
-- **Header:** "Manager Allocation Dashboard" + Export Report button + Search bar
+- **Header:** "Allocation Dashboard" + Export Report button + Search bar
 - **Summary Stat Cards (top row):**
   - Total Active Allocations (count + delta badge)
   - Current Allocation % (donut chart with percentage + billable %)

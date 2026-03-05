@@ -4,14 +4,22 @@
 
 ## 1. Document Control
 
-| Field          | Value                                       |
-| -------------- | ------------------------------------------- |
-| Project        | Project Allocation Management System (PAMS) |
-| Version        | 1.5.0                                       |
-| Date           | 2026-03-03                                  |
-| Author         | BusinessAnalyst (GitHub Copilot)            |
-| Status         | Updated – ProjectRole on Allocation Entity  |
-| Pipeline State | Phase 1 – Specification Updated             |
+| Field          | Value                                                  |
+| -------------- | ------------------------------------------------------ |
+| Project        | Project Allocation Management System (PAMS)            |
+| Version        | 1.7.0                                                  |
+| Date           | 2026-03-04                                             |
+| Author         | BusinessAnalyst (GitHub Copilot)                       |
+| Status         | Updated – DB-driven role resolution, IdP-agnostic auth |
+| Pipeline State | Phase 1 – Specification Updated                        |
+
+### Changelog
+
+| Version | Date       | Summary                                                                                                                               |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.7.0   | 2026-03-04 | DB-driven role resolution; IdP-agnostic auth (roles from Employee.Role column, not JWT claims); Keycloak used for authentication only |
+| 1.6.0   | 2026-03-04 | Resource-level billable flag, /me simplification, paginated allocations endpoint, ResourceCount on projects, fromDate validation      |
+| 1.5.0   | 2026-03-03 | ProjectRole on Allocation Entity                                                                                                      |
 
 ---
 
@@ -159,8 +167,8 @@ Delivery is split into two phases:
 - Stop allocation (end from tomorrow or today if not yet started).
 - Project-scoped Team Lead / reportee configuration (by PM or HR).
 - Pagination on all list APIs: `page` (default 1) and `limit` (default 10).
-- Role-based API responses: data filtered server-side based on token role.
-- Identity and authentication via Keycloak OAuth2/OIDC (PAMS operates as a resource server).
+- Role-based API responses: data filtered server-side based on the user's role resolved from the database `Employee.Role` column.
+- Identity and authentication via any OIDC-compliant identity provider (currently Keycloak; future migration to Microsoft Entra ID planned). PAMS operates as a resource server; only the `empCode` claim is required from the JWT.
 
 ### In Scope – MVP2
 
@@ -175,7 +183,7 @@ Delivery is split into two phases:
 - Leave / absence integration.
 - Financial billing or cost tracking.
 - Multi-language / localization.
-- SAML / multi-IdP federation (Keycloak is the sole identity provider).
+- SAML federation.
 - Gantt chart or visual timeline view.
 - Historical reporting / export.
 
@@ -329,6 +337,7 @@ Delivery is split into two phases:
 - AC-005-6: Response MUST include `Allocations[]` — a list of all active allocations for the project, using the enriched `AllocationDetailResponse` (see FR-010 AC-010-8 through AC-010-14).
 - AC-005-7: Response MUST include `TeamMembers[]` — a list of all team-lead/reportee assignments for the project, using `ProjectTeamMemberResponse`.
 - AC-005-8: A PM can see full detail of their own projects; other roles see projects filtered by authorization.
+- AC-005-9: `ProjectSummaryResponse` and `ProjectDetailResponse` MUST include `resourceCount` (int) — the count of active, non-deleted allocations on the project (i.e., allocations where `deletedAt IS NULL` and the allocation is currently active or upcoming).
 
 **Negative / Edge Cases:**
 
@@ -488,6 +497,8 @@ Delivery is split into two phases:
 - AC-010-12: Response MUST include `AccountCode` and `AccountName` (from the Project's linked Account entity).
 - AC-010-13: Response MUST include `Status` — computed as: `Active` if `FromDate <= today` and (`ToDate` is null or `ToDate >= today`); `Upcoming` if `FromDate > today`; `Ended` if `ToDate < today`.
 - AC-010-14: Response MUST include `UpdatedAt` (from the Allocation entity).
+- AC-010-15: CreateAllocation accepts an optional `billable` field (bool, default: `true`). This is the **resource-level billable flag** — independent from the project-level billable flag. In a billable project, individual resources can be marked as non-billable.
+- AC-010-16: `fromDate` must not be a past date (must be >= today). Returns HTTP 400 if violated.
 
 **Negative / Edge Cases:**
 
@@ -551,6 +562,7 @@ Delivery is split into two phases:
 - AC-012-3: HR can edit any allocation.
 - AC-012-4: Editing `fromDate` to a future date when the allocation has already started creates an audit note but is allowed (with confirmation).
 - AC-012-5: PUT request MAY include `ProjectRole` to change the employee's project role on this allocation.
+- AC-012-6: UpdateAllocation accepts an optional `billable` field (bool). When provided, updates the resource-level billable flag on the allocation.
 
 **Negative / Edge Cases:**
 
@@ -921,35 +933,62 @@ Delivery is split into two phases:
 
 ---
 
-### FR-024 – My Managed Projects
+### FR-024 – ~~My Managed Projects~~ **[REMOVED]**
 
-| Field          | Value                                                                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Priority       | P0 (Must Have)                                                                                                                                                            |
-| Persona        | Staff, Project Manager                                                                                                                                                    |
-| Description    | When viewing own profile via `/employees/me`, the response includes a list of projects the user manages (as PM or as TeamLead with reportees).                            |
-| Trigger        | User calls `GET /employees/me`.                                                                                                                                           |
-| Preconditions  | User is authenticated.                                                                                                                                                    |
-| Postconditions | Response includes `ManagedProjects[]` array with enriched project summary data.                                                                                           |
-| User Story     | As a Staff or PM user, I want to see which projects I manage (as PM or Team Lead) when viewing my own profile, so I have a single view of my management responsibilities. |
+| Field          | Value                                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Priority       | ~~P0 (Must Have)~~ **REMOVED in v1.6.0**                                                                                                                                                                                                                                                                                                                                                                          |
+| Persona        | Staff, Project Manager                                                                                                                                                                                                                                                                                                                                                                                            |
+| Description    | ~~When viewing own profile via `/employees/me`, the response includes a list of projects the user manages (as PM or as TeamLead with reportees).~~ **REMOVED**: The `/employees/me` endpoint now returns ONLY the employee profile. `ManagedProjects[]` and `CurrentAllocations[]` have been removed because embedded lists do not support pagination. Use the new paginated `GET /allocations` (FR-025) instead. |
+| Trigger        | —                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Preconditions  | —                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Postconditions | `/employees/me` returns only the employee profile data (name, empCode, role, designation, skills, etc.). No embedded `CurrentAllocations` or `ManagedProjects` arrays.                                                                                                                                                                                                                                            |
+| User Story     | As a user, I want `/employees/me` to return my profile data only, and use dedicated paginated endpoints for allocations and project data.                                                                                                                                                                                                                                                                         |
+
+**Status: REMOVED in v1.6.0**
+
+> **Reason:** Embedded `ManagedProjects[]` and `CurrentAllocations[]` on `/employees/me` do not support pagination. Replaced by:
+>
+> - `GET /allocations?empCode=myEmpCode` (FR-025) for own allocations.
+> - `GET /allocations?projectManagerEmpCode=myEmpCode` (FR-025) for managed project allocations.
+
+**Data Entities:** Employee  
+**Screens:** My Profile / `/employees/me` endpoint  
+**Dependencies:** FR-007, FR-025
+
+---
+
+### FR-025 – List Allocations (Paginated)
+
+| Field          | Value                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Priority       | P0 (Must Have)                                                                                                                |
+| Persona        | HR, Project Manager, Staff                                                                                                    |
+| Description    | `GET /api/v1/allocations` returns a paginated list of allocations with filters.                                               |
+| Trigger        | User navigates to allocations list or queries allocations via API.                                                            |
+| Preconditions  | User is authenticated.                                                                                                        |
+| Postconditions | Paginated allocation list returned based on filters and role-based visibility.                                                |
+| User Story     | As any authenticated user, I want to query allocations with pagination and filters so I can find relevant allocation records. |
 
 **Acceptance Criteria:**
 
-- AC-024-1: Response MUST include `ManagedProjects[]` array.
-- AC-024-2: Each managed project MUST include: `ProjectCode`, `ProjectName`, `AccountCode`, `AccountName`, `ManagementRole` (`ProjectManager` | `TeamLead`), `Status`, `ActiveResourceCount`.
-- AC-024-3: For PMs, includes all projects where the user is the assigned `ProjectManager`.
-- AC-024-4: For Staff with team-lead assignments, includes projects where the user has reportees in `ProjectTeamMembers`.
-- AC-024-5: For HR, includes projects where the user is PM (if any).
-- AC-024-6: `ManagedProjects` must be an empty array (not null) if the user manages no projects.
+- AC-025-1: Supports pagination via `page` (int, default 1) and `limit` (int, default 10, max 100) query parameters.
+- AC-025-2: Supports filters: `empCode` (exact match), `projectCode` (exact match), `projectManagerEmpCode` (returns allocations on projects managed by the specified PM), `status` (`Active` | `Ended` | `Upcoming`), `billable` (bool — filters on the resource-level billable flag).
+- AC-025-3: Returns `PagedResponse<AllocationDetailResponse>` with standard pagination metadata (`page`, `limit`, `totalRecords`, `totalPages`).
+- AC-025-4: Accessible to all authenticated users with role-based scoping: HR sees all allocations; PM sees allocations on projects they manage; Staff sees only their own allocations.
+- AC-025-5: Default sort: `fromDate` DESC.
+- AC-025-6: Excludes soft-deleted allocations (`deletedAt IS NOT NULL`) by default.
+- AC-025-7: For PM role: "managed projects allocations" = `GET /allocations?projectManagerEmpCode=myEmpCode`.
 
 **Negative / Edge Cases:**
 
-- User with no PM or Team Lead assignments → `ManagedProjects` is `[]`.
-- User who is both PM on Project A and Team Lead on Project B → both appear with their respective `ManagementRole`.
+- No matching allocations → empty `data` array with pagination metadata showing `totalRecords: 0`.
+- Staff user providing `empCode` of another employee → returns empty result (role-based scoping enforced server-side).
+- Invalid `status` value → HTTP 400 with validation error.
 
-**Data Entities:** Employee, Project, Account, ProjectTeamMember  
-**Screens:** My Profile / `/employees/me` endpoint  
-**Dependencies:** FR-007, FR-004, FR-020
+**Data Entities:** Allocation, Employee, Project, Account  
+**Screens:** Allocations List, API clients  
+**Dependencies:** FR-010, FR-012, FR-013
 
 ---
 
@@ -966,14 +1005,15 @@ Delivery is split into two phases:
 
 ### Security
 
-| ID     | Requirement                                                                                                                                                           |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NFR-05 | All API endpoints require authentication; unauthenticated requests return HTTP 401.                                                                                   |
-| NFR-06 | Role-based authorization enforced server-side; client-side hiding is supplementary only.                                                                              |
-| NFR-07 | PM-scoped operations (edit/stop/remove allocation) validate project ownership server-side.                                                                            |
-| NFR-08 | All sensitive data transmitted over HTTPS.                                                                                                                            |
-| NFR-09 | No passwords stored in PAMS. Authentication is fully delegated to Keycloak. PAMS validates Keycloak-issued OIDC Bearer tokens only; token tampering returns HTTP 401. |
-| NFR-10 | Audit log entries created for all create/update/delete operations on core entities.                                                                                   |
+| ID     | Requirement                                                                                                                                                                                                                                                                      |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR-05 | All API endpoints require authentication; unauthenticated requests return HTTP 401.                                                                                                                                                                                              |
+| NFR-06 | Role-based authorization enforced server-side; client-side hiding is supplementary only.                                                                                                                                                                                         |
+| NFR-07 | PM-scoped operations (edit/stop/remove allocation) validate project ownership server-side.                                                                                                                                                                                       |
+| NFR-08 | All sensitive data transmitted over HTTPS.                                                                                                                                                                                                                                       |
+| NFR-09 | No passwords stored in PAMS. Authentication is fully delegated to an external OIDC identity provider (currently Keycloak; future migration to Microsoft Entra ID planned). PAMS validates OIDC Bearer tokens via the provider's JWKS endpoint; token tampering returns HTTP 401. |
+| NFR-10 | Audit log entries created for all create/update/delete operations on core entities.                                                                                                                                                                                              |
+| NFR-23 | The system must be identity-provider-agnostic. Authentication verifies identity (JWT validation); authorization is resolved from the database `Employee.Role` column. Only the `empCode` claim is required from the JWT. No IdP-specific role claims are used.                   |
 
 ### Reliability
 
@@ -999,13 +1039,13 @@ Delivery is split into two phases:
 
 ### API Design Standards
 
-| ID     | Requirement                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NFR-18 | **Pagination (mandatory):** All list endpoints must support `page` (integer, min 1, default **1**) and `limit` (integer, min 1, max 100, default **10**) query parameters. Every paginated response must include a `pagination` object with fields: `page`, `limit`, `totalRecords`, `totalPages`.                                                                                           |
-| NFR-19 | **Pagination defaults:** If `page` and/or `limit` are omitted the server applies defaults (page=1, limit=10). Unbounded list responses are prohibited.                                                                                                                                                                                                                                       |
-| NFR-20 | **Single-endpoint strategy:** Each resource uses one endpoint for listing, searching, and filtering. Separate `/search` endpoints must not be created. Filtering is via query parameters e.g. `GET /employees?search=John&role=Staff&page=1&limit=10`.                                                                                                                                       |
-| NFR-21 | **Role-based response shaping:** API responses must be filtered server-side based on the authenticated user's role extracted from the Keycloak token. Client-side role checking is supplementary only.                                                                                                                                                                                       |
-| NFR-22 | **User Identity Resolution:** PAMS must resolve the authenticated user's internal Employee ID from the JWT `empCode` claim via database lookup when the `sub` claim does not match a known employee. The resolved identity must be cached per-request for performance. This enables Keycloak-to-application identity bridging without requiring Keycloak's `sub` to match PAMS employee IDs. |
+| ID     | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR-18 | **Pagination (mandatory):** All list endpoints must support `page` (integer, min 1, default **1**) and `limit` (integer, min 1, max 100, default **10**) query parameters. Every paginated response must include a `pagination` object with fields: `page`, `limit`, `totalRecords`, `totalPages`.                                                                                                                                                   |
+| NFR-19 | **Pagination defaults:** If `page` and/or `limit` are omitted the server applies defaults (page=1, limit=10). Unbounded list responses are prohibited.                                                                                                                                                                                                                                                                                               |
+| NFR-20 | **Single-endpoint strategy:** Each resource uses one endpoint for listing, searching, and filtering. Separate `/search` endpoints must not be created. Filtering is via query parameters e.g. `GET /employees?search=John&role=Staff&page=1&limit=10`.                                                                                                                                                                                               |
+| NFR-21 | **Role-based response shaping:** API responses must be filtered server-side based on the authenticated user's role resolved from the database `Employee.Role` column. Client-side role checking is supplementary only.                                                                                                                                                                                                                               |
+| NFR-22 | **User Identity Resolution:** PAMS must resolve the authenticated user's identity and role from the JWT `empCode` claim via database lookup against the `Employee` table. The `empCode` claim is the only IdP-specific claim required. The resolved identity (including `Employee.Role`) must be cached per-request for performance. This enables IdP-agnostic identity bridging; no IdP-specific role claims (e.g., `realm_access.roles`) are used. |
 
 **Standard paginated response envelope:**
 
@@ -1123,6 +1163,7 @@ Delivery is split into two phases:
 | toDate        | date          | No       | Null = open-ended                             |
 | percentage    | int           | Yes      | 1–100; constrained by system config           |
 | projectRole   | varchar(150)  | No       | Role on the project (e.g., Architect, Dev)    |
+| billable      | bool          | Yes      | Resource-level billable flag; default true    |
 | allocatedById | FK → Employee | Yes      | Who created the allocation                    |
 | isActive      | bool          | Yes      | Default true; false = soft-stopped via toDate |
 | deletedAt     | datetime      | No       | Null = not removed; set = soft-deleted        |
@@ -1324,13 +1365,13 @@ Delivery is split into two phases:
 
 ## 13. Integration Requirements
 
-| Integration               | Direction       | Details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Failure Handling                                                                                                                                    |
-| ------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Authentication            | Keycloak → PAMS | OAuth2/OIDC. Keycloak is the Authorization Server and identity provider. PAMS is a resource server that validates Bearer tokens via Keycloak's JWKS endpoint. Roles (`HR`, `ProjectManager`, `Staff`) are mapped from Keycloak realm roles. Future migration path: swap Keycloak Authority URL for Azure AD / Entra ID. PAMS resolves the authenticated user's Employee ID by matching the JWT `empCode` claim against the employees table. The `sub` claim is used as a primary lookup only if it matches an existing employee GUID; otherwise `empCode` is the authoritative identity bridge. | Token validation failure returns HTTP 401; client redirects to Keycloak login page. Keycloak unavailability must not block read-only health checks. |
-| Audit Log                 | PAMS → Store    | Structured log entries for all mutations; written synchronously                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Log failure must not abort primary operation but must be alerted                                                                                    |
-| Skill Master Data         | Internal CRUD   | Managed within PAMS; no external integration in MVP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | N/A                                                                                                                                                 |
-| Dashboard (Project View)  | DEPRECATED      | `/dashboard/project-view` — **DEPRECATED**. Replaced by enriched `GET /projects/{code}` which now embeds `Allocations[]` and `TeamMembers[]` directly in the `ProjectDetailResponse` (see FR-005 AC-005-6, AC-005-7).                                                                                                                                                                                                                                                                                                                                                                           | N/A                                                                                                                                                 |
-| Dashboard (Employee View) | DEPRECATED      | `/dashboard/employee-view` — **DEPRECATED**. Replaced by `GET /employees` + `GET /employees/me` which now provide all data previously served by this endpoint (see FR-024).                                                                                                                                                                                                                                                                                                                                                                                                                     | N/A                                                                                                                                                 |
+| Integration               | Direction       | Details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Failure Handling                                                                                                                          |
+| ------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentication            | OIDC IdP → PAMS | OAuth2/OIDC. Any OIDC-compliant identity provider (currently Keycloak; future migration to Microsoft Entra ID planned) serves as the Authorization Server. PAMS is a resource server that validates Bearer tokens via the provider's JWKS endpoint. **Authorization roles are NOT read from JWT claims.** Roles (`HR`, `ProjectManager`, `Staff`) are resolved from the database `Employee.Role` column after identity resolution. Only the `empCode` claim is required from the JWT. PAMS resolves the authenticated user's identity by matching the JWT `empCode` claim against the Employee table. | Token validation failure returns HTTP 401; client redirects to IdP login page. IdP unavailability must not block read-only health checks. |
+| Audit Log                 | PAMS → Store    | Structured log entries for all mutations; written synchronously                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Log failure must not abort primary operation but must be alerted                                                                          |
+| Skill Master Data         | Internal CRUD   | Managed within PAMS; no external integration in MVP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | N/A                                                                                                                                       |
+| Dashboard (Project View)  | DEPRECATED      | `/dashboard/project-view` — **DEPRECATED**. Replaced by enriched `GET /projects/{code}` which now embeds `Allocations[]` and `TeamMembers[]` directly in the `ProjectDetailResponse` (see FR-005 AC-005-6, AC-005-7).                                                                                                                                                                                                                                                                                                                                                                                 | N/A                                                                                                                                       |
+| Dashboard (Employee View) | DEPRECATED      | `/dashboard/employee-view` — **DEPRECATED**. Replaced by `GET /employees` + `GET /employees/me` which now provide all data previously served by this endpoint (see FR-024).                                                                                                                                                                                                                                                                                                                                                                                                                           | N/A                                                                                                                                       |
 
 ---
 
@@ -1349,7 +1390,7 @@ Delivery is split into two phases:
 - A-01: Each employee has exactly one role (HR, ProjectManager, or Staff); roles do not overlap.
 - A-02: An employee with role `ProjectManager` is not excluded from being allocated to projects.
 - A-03: The `Bench` account type is a special reserved account used to represent employees who are on bench; projects under the Bench account behave like regular projects for allocation purposes.
-- A-04: Keycloak is the designated identity provider. PAMS receives and validates OIDC Bearer tokens issued by Keycloak. PAMS stores no passwords. The Keycloak realm, client (`pams-api`), and role mappings (`HR`, `ProjectManager`, `Staff`) must be provisioned before PAMS can authenticate any user. Each Keycloak user must have an `empCode` attribute that matches exactly one employee record in PAMS. This is required for identity resolution.
+- A-04: An OIDC-compliant identity provider (currently Keycloak; future migration to Microsoft Entra ID planned) is used for authentication only. PAMS receives and validates OIDC Bearer tokens issued by the IdP. PAMS stores no passwords. The IdP must issue JWTs containing an `empCode` claim that matches exactly one employee record in PAMS. Authorization roles are resolved from the database `Employee.Role` column — no IdP-specific role mappings (e.g., Keycloak realm roles) are required or used.
 - A-05: A skill is a single string tag (e.g., "Android", "Java"); no skill hierarchy in MVP.
 - A-06: Date range computation uses calendar days; weekends and holidays are not excluded.
 - A-07: "Today" is computed from server time (UTC or configured timezone—architect decision).
@@ -1394,29 +1435,30 @@ Delivery is split into two phases:
 
 ## 17. FR-ID Master Index
 
-| FR-ID  | Title                                          | Priority | Persona  | Screens                                        | Status |
-| ------ | ---------------------------------------------- | -------- | -------- | ---------------------------------------------- | ------ |
-| FR-001 | Create Account                                 | P0       | HR       | Account List, Add Account Form                 | Draft  |
-| FR-002 | Edit Account                                   | P0       | HR       | Account List, Edit Account Form                | Draft  |
-| FR-003 | Deactivate Account                             | P1       | HR       | Account List                                   | Draft  |
-| FR-004 | Create Project                                 | P0       | HR       | Project List, Add Project Form                 | Draft  |
-| FR-005 | Edit Project                                   | P0       | HR, PM   | Project List, Edit Project Form                | Draft  |
-| FR-006 | Deactivate Project                             | P1       | HR       | Project List                                   | Draft  |
-| FR-007 | Create Employee                                | P0       | HR       | Employee List, Add Employee Form               | Draft  |
-| FR-008 | Edit Employee                                  | P0       | HR       | Employee List, Edit Employee Form              | Draft  |
-| FR-009 | Deactivate Employee                            | P1       | HR       | Employee List                                  | Draft  |
-| FR-010 | Create Allocation                              | P0       | HR, PM   | Allocate Modal                                 | Draft  |
-| FR-011 | Allocation Capacity Engine                     | P0       | System   | Internal                                       | Draft  |
-| FR-012 | Edit Allocation                                | P0       | HR, PM   | Project View, Employee View                    | Draft  |
-| FR-013 | Stop Allocation                                | P0       | HR, PM   | Project View, Employee View                    | Draft  |
-| FR-014 | Remove Past Allocation                         | P1       | HR, PM   | Project View, Employee View                    | Draft  |
-| FR-015 | Employee Search                                | P0       | HR, PM   | Employee View, Allocate Modal                  | Draft  |
-| FR-016 | View Employee Allocation Status                | P0       | HR, PM   | Employee Detail Drawer                         | Draft  |
-| FR-017 | Project View Dashboard                         | P0       | HR, PM   | Project View                                   | Draft  |
-| FR-018 | Employee View Dashboard                        | P0       | HR, PM   | Employee View                                  | Draft  |
-| FR-019 | Staff Allocation Dashboard                     | P0       | Staff    | Staff Allocation Dashboard                     | Draft  |
-| FR-020 | Configure Project-Scoped Team Lead / Reportees | P1       | HR, PM   | Project Detail Team Panel, Employee Edit Modal | Draft  |
-| FR-021 | System Configuration                           | P1       | HR       | Settings Screen                                | Draft  |
-| FR-022 | PM Allocation Dashboard _(MVP1)_               | P0       | PM       | PM Allocation Dashboard                        | Draft  |
-| FR-023 | Employee Self-Manage Skills _(MVP2)_           | P1       | Staff,PM | My Profile → Skills Panel                      | Draft  |
-| FR-024 | My Managed Projects (`/employees/me`)          | P0       | Staff,PM | My Profile / `/employees/me`                   | Draft  |
+| FR-ID  | Title                                                  | Priority | Persona  | Screens                                        | Status      |
+| ------ | ------------------------------------------------------ | -------- | -------- | ---------------------------------------------- | ----------- |
+| FR-001 | Create Account                                         | P0       | HR       | Account List, Add Account Form                 | Draft       |
+| FR-002 | Edit Account                                           | P0       | HR       | Account List, Edit Account Form                | Draft       |
+| FR-003 | Deactivate Account                                     | P1       | HR       | Account List                                   | Draft       |
+| FR-004 | Create Project                                         | P0       | HR       | Project List, Add Project Form                 | Draft       |
+| FR-005 | Edit Project                                           | P0       | HR, PM   | Project List, Edit Project Form                | Draft       |
+| FR-006 | Deactivate Project                                     | P1       | HR       | Project List                                   | Draft       |
+| FR-007 | Create Employee                                        | P0       | HR       | Employee List, Add Employee Form               | Draft       |
+| FR-008 | Edit Employee                                          | P0       | HR       | Employee List, Edit Employee Form              | Draft       |
+| FR-009 | Deactivate Employee                                    | P1       | HR       | Employee List                                  | Draft       |
+| FR-010 | Create Allocation                                      | P0       | HR, PM   | Allocate Modal                                 | Draft       |
+| FR-011 | Allocation Capacity Engine                             | P0       | System   | Internal                                       | Draft       |
+| FR-012 | Edit Allocation                                        | P0       | HR, PM   | Project View, Employee View                    | Draft       |
+| FR-013 | Stop Allocation                                        | P0       | HR, PM   | Project View, Employee View                    | Draft       |
+| FR-014 | Remove Past Allocation                                 | P1       | HR, PM   | Project View, Employee View                    | Draft       |
+| FR-015 | Employee Search                                        | P0       | HR, PM   | Employee View, Allocate Modal                  | Draft       |
+| FR-016 | View Employee Allocation Status                        | P0       | HR, PM   | Employee Detail Drawer                         | Draft       |
+| FR-017 | Project View Dashboard                                 | P0       | HR, PM   | Project View                                   | Draft       |
+| FR-018 | Employee View Dashboard                                | P0       | HR, PM   | Employee View                                  | Draft       |
+| FR-019 | Staff Allocation Dashboard                             | P0       | Staff    | Staff Allocation Dashboard                     | Draft       |
+| FR-020 | Configure Project-Scoped Team Lead / Reportees         | P1       | HR, PM   | Project Detail Team Panel, Employee Edit Modal | Draft       |
+| FR-021 | System Configuration                                   | P1       | HR       | Settings Screen                                | Draft       |
+| FR-022 | PM Allocation Dashboard _(MVP1)_                       | P0       | PM       | PM Allocation Dashboard                        | Draft       |
+| FR-023 | Employee Self-Manage Skills _(MVP2)_                   | P1       | Staff,PM | My Profile → Skills Panel                      | Draft       |
+| FR-024 | ~~My Managed Projects~~ (`/employees/me` profile only) | ~~P0~~   | Staff,PM | My Profile / `/employees/me`                   | **REMOVED** |
+| FR-025 | List Allocations (Paginated)                           | P0       | All      | Allocations List / API                         | Draft       |

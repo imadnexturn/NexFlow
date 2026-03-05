@@ -25,7 +25,7 @@
 
 ---
 
-## Phase 2: Page 1 – Dashboard (Manager Allocation Dashboard)
+## Phase 2: Page 1 – Dashboard (Allocation Dashboard)
 
 **API Used:** `GET /employees/me/allocations`, `GET /employees/me`
 **Screen:** `project_view_dashboard_screen.png`

@@ -95,7 +95,7 @@ src/
 │   └── use-auth-token.ts         # Convenience wrapper around useAuth() for token access
 │
 ├── pages/                        # Page-level components (one per route)
-│   ├── dashboard-page.tsx        # Page 1: Manager Allocation Dashboard
+│   ├── dashboard-page.tsx        # Page 1: Allocation Dashboard
 │   ├── managed-projects-page.tsx # Page 2: Managed Projects list
 │   └── project-details-page.tsx  # Page 3: Managed Project Details (hero screen)
 │

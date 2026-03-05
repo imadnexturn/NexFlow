@@ -205,7 +205,7 @@ Below/beside: employee name (text-sm font-medium) + email (text-xs text-slate-40
 ### Dashboard Page
 ```
 Header: flex justify-between items-center mb-6
-  ├── "Manager Allocation Dashboard" (h1, font-bold text-2xl)
+  ├── "Allocation Dashboard" (h1, font-bold text-2xl)
   └── Right: Search input + "Export Report" button (secondary)
 
 Stat Cards: grid grid-cols-3 gap-4 mb-6
