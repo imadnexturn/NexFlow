@@ -19,6 +19,7 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { useUpdateAllocationMutation } from '@/store/api/allocations-api'
+import { validateAllocationPercentage } from '@/lib/constants'
 import type { Allocation } from '@/types'
 
 interface EditAllocationModalProps {
@@ -69,17 +70,10 @@ function EditAllocationModal({
     const handleSave = async () => {
         if (!fromDate || !percentage) return
 
-        const pct = Number(percentage)
-        if (pct < 25) {
-            setPercentageError('Minimum allocation is 25%')
-            return
-        }
-        if (pct > 100) {
-            setPercentageError('Maximum allocation is 100%')
-            return
-        }
-        if (pct % 5 !== 0) {
-            setPercentageError('Allocation must be a multiple of 5%')
+        const allocationValue = Number(percentage)
+        const validationError = validateAllocationPercentage(allocationValue)
+        if (validationError) {
+            setPercentageError(validationError)
             return
         }
         setPercentageError('')
@@ -92,7 +86,7 @@ function EditAllocationModal({
                     toDate: toDate
                         ? format(toDate, 'yyyy-MM-dd')
                         : undefined,
-                    percentage: Number(percentage),
+                    percentage: allocationValue,
                     projectRole: allocation.projectRole,
                 },
             }).unwrap()
@@ -213,12 +207,13 @@ function EditAllocationModal({
                                 setPercentage(e.target.value)
                                 setPercentageError('')
                             }}
+                            className="pl-4"
                         />
-                        {percentageError && (
+                        {percentageError ? (
                             <p className="text-xs font-medium text-red-600">
                                 {percentageError}
                             </p>
-                        )}
+                        ) : null}
                     </div>
                 </div>
 

@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { CalendarIcon, ChevronsUpDown, Check, Search, Loader2 } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { CalendarIcon, ChevronsUpDown, Search } from 'lucide-react'
 import { format } from 'date-fns'
 import {
     Dialog,
@@ -26,10 +26,7 @@ import {
 } from '@/components/ui/popover'
 import {
     Command,
-    CommandEmpty,
-    CommandGroup,
     CommandInput,
-    CommandItem,
     CommandList,
 } from '@/components/ui/command'
 import { Calendar } from '@/components/ui/calendar'
@@ -38,7 +35,9 @@ import { useLazySearchEmployeesQuery } from '@/store/api/employees-api'
 import { useLazyCheckCapacityQuery } from '@/store/api/allocations-api'
 import { useCreateAllocationMutation } from '@/store/api/allocations-api'
 import type { EmployeeSummary } from '@/types'
-import { PROJECT_ROLES } from '@/lib/constants'
+import { PROJECT_ROLES, validateAllocationPercentage } from '@/lib/constants'
+import useDebouncedCallback from '@/hooks/use-debounced-callback'
+import EmployeeSearchList from '@/components/shared/employee-search-list'
 
 interface AssignEmployeeModalProps {
     open: boolean
@@ -78,8 +77,17 @@ function AssignEmployeeModal({
     const [createAllocation, { isLoading: isCreating }] =
         useCreateAllocationMutation()
 
-    // Debounce timer ref
-    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    // Debounced search on input change (500ms)
+    const debouncedSearch = useDebouncedCallback(
+        (search: string) => {
+            void searchEmployees({
+                search,
+                isActive: true,
+                limit: 20,
+            })
+        },
+        500,
+    )
 
     // Load employees when combobox opens (no search params)
     const handleComboboxOpenChange = useCallback(
@@ -95,32 +103,6 @@ function AssignEmployeeModal({
         },
         [searchEmployees],
     )
-
-    // Debounced search on input change (500ms)
-    const handleEmployeeSearch = useCallback(
-        (search: string) => {
-            if (searchTimerRef.current) {
-                clearTimeout(searchTimerRef.current)
-            }
-            searchTimerRef.current = setTimeout(() => {
-                void searchEmployees({
-                    search,
-                    isActive: true,
-                    limit: 20,
-                })
-            }, 500)
-        },
-        [searchEmployees],
-    )
-
-    // Cleanup debounce timer on unmount
-    useEffect(() => {
-        return () => {
-            if (searchTimerRef.current) {
-                clearTimeout(searchTimerRef.current)
-            }
-        }
-    }, [])
 
     // Check capacity when employee + dates change
     useEffect(() => {
@@ -139,9 +121,10 @@ function AssignEmployeeModal({
     const enteredPercentage = Number(percentage) || 0
     const overAllocated = enteredPercentage > availablePercentage
 
-    // Reset form on close
+    // Reset form on close + cancel pending debounce
     useEffect(() => {
         if (!open) {
+            debouncedSearch.cancel()
             setSelectedEmployee(null)
             setFromDate(undefined)
             setToDate(undefined)
@@ -150,7 +133,7 @@ function AssignEmployeeModal({
             setProjectRole('')
             setBillable(false)
         }
-    }, [open])
+    }, [open, debouncedSearch])
 
     // Auto-clear toDate if fromDate moves past it
     const handleFromDateChange = (date: Date | undefined) => {
@@ -163,17 +146,10 @@ function AssignEmployeeModal({
     const handleSave = async () => {
         if (!selectedEmployee || !fromDate || !percentage) return
 
-        const pct = Number(percentage)
-        if (pct < 25) {
-            setPercentageError('Minimum allocation is 25%')
-            return
-        }
-        if (pct > 100) {
-            setPercentageError('Maximum allocation is 100%')
-            return
-        }
-        if (pct % 5 !== 0) {
-            setPercentageError('Allocation must be a multiple of 5%')
+        const allocationValue = Number(percentage)
+        const validationError = validateAllocationPercentage(allocationValue)
+        if (validationError) {
+            setPercentageError(validationError)
             return
         }
         setPercentageError('')
@@ -186,7 +162,7 @@ function AssignEmployeeModal({
                 toDate: toDate
                     ? format(toDate, 'yyyy-MM-dd')
                     : undefined,
-                percentage: Number(percentage),
+                percentage: allocationValue,
                 projectRole: projectRole || null,
             }).unwrap()
 
@@ -252,51 +228,19 @@ function AssignEmployeeModal({
                                 <Command shouldFilter={false}>
                                     <CommandInput
                                         placeholder="Search employees..."
-                                        onValueChange={handleEmployeeSearch}
+                                        onValueChange={debouncedSearch}
                                     />
                                     <CommandList>
-                                        {isSearching ? (
-                                            <div className="flex items-center justify-center py-6">
-                                                <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <CommandEmpty>
-                                                    No employee found.
-                                                </CommandEmpty>
-                                                <CommandGroup>
-                                                    {employees.map((emp) => (
-                                                        <CommandItem
-                                                            key={emp.empCode}
-                                                            value={emp.empCode}
-                                                            onSelect={() => {
-                                                                setSelectedEmployee(emp)
-                                                                setComboboxOpen(false)
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    'mr-2 h-4 w-4',
-                                                                    selectedEmployee?.empCode ===
-                                                                        emp.empCode
-                                                                        ? 'opacity-100'
-                                                                        : 'opacity-0',
-                                                                )}
-                                                            />
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-medium">
-                                                                    {emp.fullName}
-                                                                </span>
-                                                                <span className="text-xs text-slate-400">
-                                                                    {emp.empCode} •{' '}
-                                                                    {emp.designation}
-                                                                </span>
-                                                            </div>
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </>
-                                        )}
+                                        <EmployeeSearchList
+                                            employees={employees}
+                                            isSearching={isSearching}
+                                            selectedEmpCode={selectedEmployee?.empCode}
+                                            onSelect={(emp) => {
+                                                debouncedSearch.cancel()
+                                                setSelectedEmployee(emp)
+                                                setComboboxOpen(false)
+                                            }}
+                                        />
                                     </CommandList>
                                 </Command>
                             </PopoverContent>
