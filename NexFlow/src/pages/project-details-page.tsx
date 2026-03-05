@@ -163,9 +163,8 @@ function ProjectDetailsPage() {
     )
     const avgAllocated =
         activeAllocations.length > 0
-            ? Math.round(totalPercentage / activeAllocations.length)
+            ? totalPercentage / activeAllocations.length
             : 0
-    const availableCapacity = Math.max(0, 100 - avgAllocated)
 
     // Client-side pagination
     const totalCount = allocations.length
@@ -224,16 +223,16 @@ function ProjectDetailsPage() {
             {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
-                    label="Total Allocated %"
-                    value={`${avgAllocated}%`}
+                    label="Total Allocation"
+                    value={`${totalPercentage}%`}
                 />
                 <StatCard
-                    label="Total Team Members"
-                    value={allocations.length}
+                    label="Assigned Resources"
+                    value={activeAllocations.length}
                 />
                 <StatCard
-                    label="Available Capacity"
-                    value={`${availableCapacity}%`}
+                    label="Average Allocation"
+                    value={`${avgAllocated.toFixed(2)}%`}
                 />
             </div>
 

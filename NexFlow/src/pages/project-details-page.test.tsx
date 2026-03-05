@@ -106,13 +106,13 @@ describe('ProjectDetailsPage', () => {
         renderPage()
         await screen.findByText('Cloud Migration 2.0')
         expect(
-            screen.getByText('Total Allocated %'),
+            screen.getByText('Total Allocation'),
         ).toBeInTheDocument()
         expect(
-            screen.getByText('Total Team Members'),
+            screen.getByText('Assigned Resources'),
         ).toBeInTheDocument()
         expect(
-            screen.getByText('Available Capacity'),
+            screen.getByText('Average Allocation'),
         ).toBeInTheDocument()
     })
 
