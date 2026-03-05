@@ -8,6 +8,7 @@ import {
     Trash2,
 } from 'lucide-react'
 import { useGetProjectDetailsQuery } from '@/store/api/projects-api'
+import { useGetMeQuery } from '@/store/api/employees-api'
 import PageHeader from '@/components/layout/page-header'
 import StatCard from '@/components/shared/stat-card'
 import StatusBadge from '@/components/shared/status-badge'
@@ -150,6 +151,8 @@ function ProjectDetailsPage() {
 
     const allocations = project?.allocations ?? []
 
+    const { data: me } = useGetMeQuery()
+
     // Stat calculations
     const activeAllocations = allocations.filter(
         (a) => a.status === 'Active',
@@ -206,13 +209,15 @@ function ProjectDetailsPage() {
                 title={project?.projectName ?? 'Project Details'}
                 subtitle={`${project?.accountName ?? ''} • ${project?.status ?? ''}`}
                 actions={
-                    <Button
-                        variant="outline"
-                        aria-label="Project Settings"
-                    >
-                        <Settings className="w-4 h-4 mr-2" />
-                        Project Settings
-                    </Button>
+                    me?.role === 'HR' && (
+                        <Button
+                            variant="outline"
+                            aria-label="Project Settings"
+                        >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Project Settings
+                        </Button>
+                    )
                 }
             />
 

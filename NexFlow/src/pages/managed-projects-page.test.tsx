@@ -9,6 +9,9 @@ import { dashboardFiltersSlice } from '@/store/slices/dashboard-filters-slice'
 import { projectsFiltersSlice } from '@/store/slices/projects-filters-slice'
 import { projectDetailsSlice } from '@/store/slices/project-details-slice'
 import ManagedProjectsPage from './managed-projects-page'
+import { server } from '@/mocks/server'
+import { http, HttpResponse } from 'msw'
+import { mockAllocations } from '@/mocks/fixtures/allocations'
 
 /**
  * Helper: create a fresh store for each test.
@@ -49,10 +52,30 @@ describe('ManagedProjectsPage', () => {
         ).toBeInTheDocument()
     })
 
-    it('should render the New Project button', async () => {
+    it('should render the New Project button for HR role', async () => {
+        // Override the default mock to return an HR role for this test
+        server.use(
+            http.get(`${import.meta.env.VITE_API_BASE_URL}/employees/me`, () => {
+                return HttpResponse.json({
+                    ...mockAllocations[0], // Base data structure doesn't matter much here, we just need role
+                    employeeId: 'emp-uuid-hr',
+                    empCode: 'EMP-HR',
+                    fullName: 'HR User',
+                    role: 'HR',
+                })
+            })
+        )
+        
         renderPage()
         await screen.findByText('Cloud Migration 2.0')
         expect(screen.getByText('New Project')).toBeInTheDocument()
+    })
+
+    it('should not render the New Project button for non-HR role', async () => {
+        // The default mock uses 'ProjectManager', so we can use that
+        renderPage()
+        await screen.findByText('Cloud Migration 2.0')
+        expect(screen.queryByText('New Project')).not.toBeInTheDocument()
     })
 
     it('should render a search input', async () => {

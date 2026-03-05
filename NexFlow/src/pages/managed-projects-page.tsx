@@ -183,13 +183,15 @@ function ManagedProjectsPage() {
             <PageHeader
                 title="Managed Projects"
                 actions={
-                    <Button
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                        aria-label="New Project"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        New Project
-                    </Button>
+                    me?.role === 'HR' && (
+                        <Button
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                            aria-label="New Project"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            New Project
+                        </Button>
+                    )
                 }
             />
 
