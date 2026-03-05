@@ -62,11 +62,18 @@ describe('DashboardPage', () => {
 
     // search input test removed for backend pagination constraints
 
-    it('should render four stat cards', async () => {
+    it('should render four stat cards with mock data', async () => {
         renderDashboard()
         expect(
             await screen.findByText('Total Active Allocations'),
         ).toBeInTheDocument()
+        
+        // Wait for MSW data to populate the stats
+        expect(await screen.findByText('1')).toBeInTheDocument() // Active count
+        
+        const fiftyPercentStats = await screen.findAllByText('50%')
+        expect(fiftyPercentStats.length).toBeGreaterThanOrEqual(2) // Current Allocation % & Billable %
+
         expect(screen.getByText('Current Allocation %')).toBeInTheDocument()
         expect(screen.getByText('Billable %')).toBeInTheDocument()
         expect(screen.getByText('Upcoming End Dates')).toBeInTheDocument()

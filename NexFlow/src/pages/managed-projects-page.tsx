@@ -28,20 +28,20 @@ import type { ProjectSummary } from '@/types'
 
 const columns: ColumnDef<ProjectSummary>[] = [
     {
-        accessorKey: 'accountName',
-        header: 'Account Name',
-        cell: (row) => (
-            <span className="text-sm font-medium text-slate-900">
-                {row.accountName}
-            </span>
-        ),
-    },
-    {
         accessorKey: 'projectName',
         header: 'Project Name',
         cell: (row) => (
             <span className="text-sm font-medium text-indigo-600">
                 {row.projectName}
+            </span>
+        ),
+    },
+    {
+        accessorKey: 'accountName',
+        header: 'Account Name',
+        cell: (row) => (
+            <span className="text-sm font-medium text-slate-900">
+                {row.accountName}
             </span>
         ),
     },

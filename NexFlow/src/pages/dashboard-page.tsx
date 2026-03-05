@@ -172,8 +172,9 @@ function DashboardPage() {
         (sum, a) => sum + a.percentage,
         0,
     )
-    const avgAllocation =
-        activeCount > 0 ? Math.round(totalPercentage / activeCount) : 0
+    const billablePercentage = activeAllocations
+        .filter((a) => a.billable)
+        .reduce((sum, a) => sum + a.percentage, 0)
     const upcomingEndCount = allocations.filter((a) => {
         if (!a.toDate) return false
         const endDate = new Date(a.toDate)
@@ -218,16 +219,15 @@ function DashboardPage() {
                 <StatCard
                     label="Total Active Allocations"
                     value={activeCount}
-                    delta={`+${activeCount}`}
-                    deltaType="positive"
+                
                 />
                 <StatCard
                     label="Current Allocation %"
-                    value={`${avgAllocation}%`}
+                    value={`${totalPercentage}%`}
                 />
                 <StatCard
                     label="Billable %"
-                    value={`${activeCount > 0 ? Math.round((activeAllocations.filter((a) => a.billable).length / activeCount) * 100) : 0}%`}
+                    value={`${billablePercentage}%`}
                     delta="TARGET:100%"
                     deltaType="positive"
                 />
