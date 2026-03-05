@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, Plus } from 'lucide-react'
 import {
@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 import type { ProjectSummary } from '@/types'
+import useDebounce from '@/hooks/use-debounce'
 
 const columns: ColumnDef<ProjectSummary>[] = [
     {
@@ -98,7 +99,23 @@ function ManagedProjectsPage() {
         (state) => state.projectsFilters,
     )
 
+    // Local state for immediate UI updates while typing
+    const [localSearchText, setLocalSearchText] = useState(searchText)
+    const debouncedSearchText = useDebounce(localSearchText, 500)
+
     const [page, setPage] = useState(1)
+    const [prevSearchText, setPrevSearchText] = useState(searchText)
+
+    // Sync Redux state when debounced value changes
+    useEffect(() => {
+        dispatch(setSearchText(debouncedSearchText))
+    }, [debouncedSearchText, dispatch])
+
+    // Derived state pattern: reset pagination when Redux searchText actually changes
+    if (searchText !== prevSearchText) {
+        setPrevSearchText(searchText)
+        setPage(1)
+    }
 
     const { data: me, isLoading: isLoadingMe } = useGetMeQuery()
 
@@ -180,11 +197,8 @@ function ManagedProjectsPage() {
             <div className="flex flex-wrap items-center gap-4">
                 <div className="flex-1 min-w-[300px]">
                     <SearchInput
-                        value={searchText}
-                        onChange={(val) => {
-                            dispatch(setSearchText(val))
-                            setPage(1)
-                        }}
+                        value={localSearchText}
+                        onChange={setLocalSearchText}
                         placeholder="Search projects, clients or codes..."
                     />
                 </div>
