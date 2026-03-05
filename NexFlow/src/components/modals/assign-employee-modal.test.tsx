@@ -108,4 +108,10 @@ describe('AssignEmployeeModal', () => {
         await userEvent.click(cancelBtn)
         expect(onOpenChange).toHaveBeenCalledWith(false)
     })
+
+    it('should render Role dropdown with project role options', async () => {
+        renderModal()
+        expect(screen.getByText('Role')).toBeInTheDocument()
+        expect(screen.getByText('Select a role')).toBeInTheDocument()
+    })
 })

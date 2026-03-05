@@ -39,6 +39,7 @@ function EditAllocationModal({
     const [fromDate, setFromDate] = useState<Date | undefined>(undefined)
     const [toDate, setToDate] = useState<Date | undefined>(undefined)
     const [percentage, setPercentage] = useState('')
+    const [percentageError, setPercentageError] = useState('')
 
     const [updateAllocation, { isLoading }] =
         useUpdateAllocationMutation()
@@ -53,11 +54,35 @@ function EditAllocationModal({
                     : undefined,
             )
             setPercentage(String(allocation.percentage))
+            setPercentageError('')
         }
     }, [open, allocation])
 
+    // Auto-clear toDate if fromDate moves past it
+    const handleFromDateChange = (date: Date | undefined) => {
+        setFromDate(date)
+        if (date && toDate && date > toDate) {
+            setToDate(undefined)
+        }
+    }
+
     const handleSave = async () => {
         if (!fromDate || !percentage) return
+
+        const pct = Number(percentage)
+        if (pct < 25) {
+            setPercentageError('Minimum allocation is 25%')
+            return
+        }
+        if (pct > 100) {
+            setPercentageError('Maximum allocation is 100%')
+            return
+        }
+        if (pct % 5 !== 0) {
+            setPercentageError('Allocation must be a multiple of 5%')
+            return
+        }
+        setPercentageError('')
 
         try {
             await updateAllocation({
@@ -124,7 +149,7 @@ function EditAllocationModal({
                                     <Calendar
                                         mode="single"
                                         selected={fromDate}
-                                        onSelect={setFromDate}
+                                        onSelect={handleFromDateChange}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -161,6 +186,7 @@ function EditAllocationModal({
                                         mode="single"
                                         selected={toDate}
                                         onSelect={setToDate}
+                                        disabled={fromDate ? { before: fromDate } : undefined}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -183,10 +209,16 @@ function EditAllocationModal({
                             max={100}
                             placeholder="e.g. 100"
                             value={percentage}
-                            onChange={(e) =>
+                            onChange={(e) => {
                                 setPercentage(e.target.value)
-                            }
+                                setPercentageError('')
+                            }}
                         />
+                        {percentageError && (
+                            <p className="text-xs font-medium text-red-600">
+                                {percentageError}
+                            </p>
+                        )}
                     </div>
                 </div>
 
