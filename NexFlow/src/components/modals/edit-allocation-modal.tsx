@@ -19,6 +19,7 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { useUpdateAllocationMutation } from '@/store/api/allocations-api'
+import { validateAllocationPercentage } from '@/lib/constants'
 import type { Allocation } from '@/types'
 
 interface EditAllocationModalProps {
@@ -39,6 +40,7 @@ function EditAllocationModal({
     const [fromDate, setFromDate] = useState<Date | undefined>(undefined)
     const [toDate, setToDate] = useState<Date | undefined>(undefined)
     const [percentage, setPercentage] = useState('')
+    const [percentageError, setPercentageError] = useState('')
 
     const [updateAllocation, { isLoading }] =
         useUpdateAllocationMutation()
@@ -53,11 +55,28 @@ function EditAllocationModal({
                     : undefined,
             )
             setPercentage(String(allocation.percentage))
+            setPercentageError('')
         }
     }, [open, allocation])
 
+    // Auto-clear toDate if fromDate moves past it
+    const handleFromDateChange = (date: Date | undefined) => {
+        setFromDate(date)
+        if (date && toDate && date > toDate) {
+            setToDate(undefined)
+        }
+    }
+
     const handleSave = async () => {
         if (!fromDate || !percentage) return
+
+        const allocationValue = Number(percentage)
+        const validationError = validateAllocationPercentage(allocationValue)
+        if (validationError) {
+            setPercentageError(validationError)
+            return
+        }
+        setPercentageError('')
 
         try {
             await updateAllocation({
@@ -67,7 +86,7 @@ function EditAllocationModal({
                     toDate: toDate
                         ? format(toDate, 'yyyy-MM-dd')
                         : undefined,
-                    percentage: Number(percentage),
+                    percentage: allocationValue,
                     projectRole: allocation.projectRole,
                 },
             }).unwrap()
@@ -124,7 +143,7 @@ function EditAllocationModal({
                                     <Calendar
                                         mode="single"
                                         selected={fromDate}
-                                        onSelect={setFromDate}
+                                        onSelect={handleFromDateChange}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -161,6 +180,7 @@ function EditAllocationModal({
                                         mode="single"
                                         selected={toDate}
                                         onSelect={setToDate}
+                                        disabled={fromDate ? { before: fromDate } : undefined}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -183,10 +203,17 @@ function EditAllocationModal({
                             max={100}
                             placeholder="e.g. 100"
                             value={percentage}
-                            onChange={(e) =>
+                            onChange={(e) => {
                                 setPercentage(e.target.value)
-                            }
+                                setPercentageError('')
+                            }}
+                            className="pl-4"
                         />
+                        {percentageError ? (
+                            <p className="text-xs font-medium text-red-600">
+                                {percentageError}
+                            </p>
+                        ) : null}
                     </div>
                 </div>
 
