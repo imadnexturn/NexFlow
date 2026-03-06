@@ -1,6 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
-import { userEvent } from '@testing-library/user-event'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import { configureStore } from '@reduxjs/toolkit'
@@ -106,7 +105,7 @@ describe('ManagedProjectsPage', () => {
                 'Project Name',
                 'Code',
                 'Billable',
-                'Status',
+                'Status↑',
                 'Action',
             ]),
         )

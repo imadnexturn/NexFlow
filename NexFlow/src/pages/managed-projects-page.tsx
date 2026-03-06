@@ -104,7 +104,19 @@ function ManagedProjectsPage() {
     const debouncedSearchText = useDebounce(localSearchText, 500)
 
     const [page, setPage] = useState(1)
+    const [sortConfig, setSortConfig] = useState<{ key: keyof ProjectSummary & string; direction: 'asc' | 'desc' }>({
+        key: 'status',
+        direction: 'asc',
+    })
     const [prevSearchText, setPrevSearchText] = useState(searchText)
+
+    const handleSort = (key: keyof ProjectSummary & string) => {
+        setSortConfig((current) => ({
+            key,
+            direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+        }))
+        setPage(1)
+    }
 
     // Sync Redux state when debounced value changes
     useEffect(() => {
@@ -130,6 +142,7 @@ function ManagedProjectsPage() {
             status: statusFilter || undefined,
             page,
             limit: DEFAULT_PAGE_SIZE,
+            sort: sortConfig.direction === 'desc' ? `-${sortConfig.key}` : sortConfig.key,
         },
         {
             skip: !me?.empCode,
@@ -263,6 +276,8 @@ function ManagedProjectsPage() {
                         pageSize: DEFAULT_PAGE_SIZE,
                     }}
                     onPageChange={setPage}
+                    onSort={handleSort}
+                    currentSort={sortConfig}
                 />
                 {/* Pagination Footer */}
                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 rounded-b-lg">

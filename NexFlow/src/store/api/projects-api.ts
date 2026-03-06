@@ -10,6 +10,7 @@ interface GetManagedProjectsArgs {
     billable?: boolean
     page?: number
     limit?: number
+    sort?: string
 }
 
 const projectsApi = apiSlice.injectEndpoints({
@@ -27,6 +28,7 @@ const projectsApi = apiSlice.injectEndpoints({
                 billable,
                 page = 1,
                 limit = 10,
+                sort,
             }) => {
                 const params = new URLSearchParams()
                 if (projectManagerEmpCode) {
@@ -41,6 +43,7 @@ const projectsApi = apiSlice.injectEndpoints({
                 if (billable !== undefined) {
                     params.set('billable', String(billable))
                 }
+                if (sort) params.set('sort', sort)
                 params.set('page', String(page))
                 params.set('limit', String(limit))
                 return `/projects?${params.toString()}`
