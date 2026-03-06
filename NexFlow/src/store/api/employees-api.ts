@@ -10,6 +10,7 @@ interface SearchEmployeesArgs {
     windowTo?: string
     page?: number
     limit?: number
+    empCode?: string
 }
 
 const employeesApi = apiSlice.injectEndpoints({
@@ -35,6 +36,7 @@ const employeesApi = apiSlice.injectEndpoints({
                 windowTo,
                 page = 1,
                 limit = 10,
+                empCode,
             }) => {
                 const params = new URLSearchParams()
                 if (search) params.set('search', search)
@@ -45,6 +47,7 @@ const employeesApi = apiSlice.injectEndpoints({
                 if (benchOnly) params.set('benchOnly', 'true')
                 if (windowFrom) params.set('windowFrom', windowFrom)
                 if (windowTo) params.set('windowTo', windowTo)
+                if (empCode) params.set('empCode', empCode)
                 params.set('page', String(page))
                 params.set('limit', String(limit))
                 return `/employees?${params.toString()}`
@@ -69,6 +72,7 @@ const employeesApi = apiSlice.injectEndpoints({
                 if (searchArgs.benchOnly) params.set('benchOnly', 'true')
                 if (searchArgs.windowFrom) params.set('windowFrom', searchArgs.windowFrom)
                 if (searchArgs.windowTo) params.set('windowTo', searchArgs.windowTo)
+                if (searchArgs.empCode) params.set('empCode', searchArgs.empCode)
 
                 return {
                     url: `/employees/export?${params.toString()}`,
