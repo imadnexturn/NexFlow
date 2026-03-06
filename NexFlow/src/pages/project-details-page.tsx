@@ -61,6 +61,8 @@ function ProjectDetailsPage() {
     const [deletingAllocation, setDeletingAllocation] =
         useState<Allocation | null>(null)
 
+    const { data: me } = useGetMeQuery()
+
     const handleEdit = (allocation: Allocation) => {
         setEditingAllocation(allocation)
         setEditModalOpen(true)
@@ -129,16 +131,18 @@ function ProjectDetailsPage() {
                 cell: (row) => (
                     <div className="flex items-center gap-3">
                         <button
-                            className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                            className="text-indigo-600 hover:text-indigo-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Edit allocation"
                             onClick={() => handleEdit(row)}
+                            disabled={row.empCode === me?.empCode}
                         >
                             <Pencil className="w-4 h-4" />
                         </button>
                         <button
-                            className="text-red-500 hover:text-red-700 transition-colors"
+                            className="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Remove allocation"
                             onClick={() => handleDelete(row)}
+                            disabled={row.empCode === me?.empCode}
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
@@ -146,12 +150,10 @@ function ProjectDetailsPage() {
                 ),
             },
         ],
-        [],
+        [me?.empCode],
     )
 
     const allocations = project?.allocations ?? []
-
-    const { data: me } = useGetMeQuery()
 
     // Stat calculations
     const activeAllocations = allocations.filter(

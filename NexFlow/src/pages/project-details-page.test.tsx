@@ -178,6 +178,38 @@ describe('ProjectDetailsPage', () => {
         expect(removeButtons.length).toBeGreaterThanOrEqual(2)
     })
 
+    it('should disable edit and delete actions for the logged in user', async () => {
+        // Mock logged in user to be Sarah Chen. We need her empCode to match the one in the project mock.
+        // Even if we don't know her exact empCode, we can override the project mock, OR we can just check what the test data uses.
+        // Assuming her empCode is 'EMP-001' or similar. Better yet, let's mock it using what's available.
+        // Wait, the test already finds "Sarah Chen". Let's assume her empCode is what we set in the mock or we can just provide "EMP-001".
+        // Actually, if we look at `mockAllocations[0]`, it has empCode "EMP001". Let's assume the project details mock uses EMP001 for her or something similar.
+        // Let's just mock /employees/me to return the exact data for Sarah Chen.
+        server.use(
+            http.get(`${import.meta.env.VITE_API_BASE_URL}/employees/me`, () => {
+                return HttpResponse.json({
+                    employeeId: 'emp-uuid-010',
+                    empCode: 'EMP010', // exact empCode used in project-handlers.ts for Sarah
+                    fullName: 'Sarah Chen',
+                    role: 'ProjectManager',
+                })
+            })
+        )
+        
+        renderPage()
+        
+        // Find the row for the logged in user (Sarah Chen)
+        const row = await screen.findByText('Sarah Chen')
+        const rowContainer = row.closest('tr')!
+        
+        // Verify buttons in this row. If EMP-001 is wrong, they won't be disabled. We'll find out.
+        const editButton = within(rowContainer).getByRole('button', { name: /edit allocation/i })
+        const removeButton = within(rowContainer).getByRole('button', { name: /remove allocation/i })
+        
+        expect(editButton).toBeDisabled()
+        expect(removeButton).toBeDisabled()
+    })
+
     it('should show pagination controls', async () => {
         renderPage()
         await screen.findByText('Sarah Chen')
