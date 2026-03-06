@@ -1,27 +1,29 @@
-import { useState, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import {
-    ArrowLeft,
-    Settings,
-    UserPlus,
-    Pencil,
-    Trash2,
-} from 'lucide-react'
-import { useGetProjectDetailsQuery } from '@/store/api/projects-api'
-import { useGetMeQuery } from '@/store/api/employees-api'
 import PageHeader from '@/components/layout/page-header'
+import AssignEmployeeModal from '@/components/modals/assign-employee-modal'
+import DeleteAllocationDialog from '@/components/modals/delete-allocation-dialog'
+import EditAllocationModal from '@/components/modals/edit-allocation-modal'
+import ManageHierarchyModal from '@/components/modals/manage-hierarchy-modal'
+import AllocationProgressBar from '@/components/shared/allocation-progress-bar'
+import type { ColumnDef } from '@/components/shared/data-table'
+import DataTable from '@/components/shared/data-table'
 import StatCard from '@/components/shared/stat-card'
 import StatusBadge from '@/components/shared/status-badge'
-import AllocationProgressBar from '@/components/shared/allocation-progress-bar'
-import DataTable from '@/components/shared/data-table'
-import type { ColumnDef } from '@/components/shared/data-table'
-import AssignEmployeeModal from '@/components/modals/assign-employee-modal'
-import EditAllocationModal from '@/components/modals/edit-allocation-modal'
-import DeleteAllocationDialog from '@/components/modals/delete-allocation-dialog'
+import TeamHierarchyChart from '@/components/shared/team-hierarchy-chart'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import { useGetMeQuery } from '@/store/api/employees-api'
+import { useGetProjectDetailsQuery, useRemoveTeamMemberMutation } from '@/store/api/projects-api'
 import type { Allocation } from '@/types'
+import {
+    ArrowLeft,
+    Pencil,
+    Settings,
+    Trash2,
+    UserPlus,
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 
 /**
  * Format ISO date string to readable format.
@@ -50,6 +52,7 @@ function ProjectDetailsPage() {
 
     const [page, setPage] = useState(1)
     const [assignModalOpen, setAssignModalOpen] = useState(false)
+    const [hierarchyModalOpen, setHierarchyModalOpen] = useState(false)
 
     // Edit allocation state
     const [editModalOpen, setEditModalOpen] = useState(false)
@@ -62,6 +65,21 @@ function ProjectDetailsPage() {
         useState<Allocation | null>(null)
 
     const { data: me } = useGetMeQuery()
+    const [removeTeamMember] = useRemoveTeamMemberMutation()
+
+    const canManage =
+        me?.role === 'HR' || me?.role === 'ProjectManager'
+
+    const handleRemoveMember = (
+        teamLeadEmpCode: string,
+        reporteeEmpCode: string,
+    ) => {
+        void removeTeamMember({
+            projectCode: projectCode ?? '',
+            teamLeadEmpCode,
+            reporteeEmpCode,
+        })
+    }
 
     const handleEdit = (allocation: Allocation) => {
         setEditingAllocation(allocation)
@@ -238,6 +256,23 @@ function ProjectDetailsPage() {
                 />
             </div>
 
+            {/* Reporting Hierarchy */}
+            {project && (
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <TeamHierarchyChart
+                        teamMembers={project.teamMembers}
+                        allocations={allocations}
+                        projectManagerEmpCode={
+                            project.projectManagerEmpCode
+                        }
+                        projectManagerName={project.projectManagerName}
+                        canManage={canManage}
+                        onRemoveMember={handleRemoveMember}
+                        onAddClick={() => setHierarchyModalOpen(true)}
+                    />
+                </div>
+            )}
+
             {/* Resource Allocations */}
             <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -266,6 +301,19 @@ function ProjectDetailsPage() {
                     onPageChange={setPage}
                 />
             </div>
+
+            {/* Manage Hierarchy Modal */}
+            <ManageHierarchyModal
+                open={hierarchyModalOpen}
+                onOpenChange={setHierarchyModalOpen}
+                projectCode={projectCode ?? ''}
+                projectName={project?.projectName ?? ''}
+                allocations={allocations}
+                existingPairs={project?.teamMembers ?? []}
+                projectManagerEmpCode={
+                    project?.projectManagerEmpCode ?? null
+                }
+            />
 
             {/* Assign Employee Modal */}
             <AssignEmployeeModal
