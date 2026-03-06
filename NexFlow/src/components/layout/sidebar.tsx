@@ -63,9 +63,28 @@ function Sidebar() {
         <aside className="fixed left-0 top-0 z-40 flex h-screen w-60 flex-col bg-slate-900">
             {/* Logo */}
             <div className="flex items-center gap-2 px-4 py-5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
-                    N
-                </div>
+                <svg className="h-8 w-8 shrink-0" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        {/* Shine gradient */}
+                        <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="white" stopOpacity="0" />
+                            <stop offset="50%" stopColor="white" stopOpacity="0.7" />
+                            <stop offset="100%" stopColor="white" stopOpacity="0" />
+                        </linearGradient>
+                        {/* Clip everything to the rounded square */}
+                        <clipPath id="clipLogo">
+                            <rect width="44" height="44" rx="10" />
+                        </clipPath>
+                    </defs>
+                    {/* Logo Background */}
+                    <rect width="44" height="44" rx="10" fill="#5048e5" />
+                    {/* Logo Letter */}
+                    <path d="M11 32 L11 12 L19 12 L27 25 L27 12 L33 12 L33 32 L25 32 L17 19 L17 32 Z" fill="white" />
+                    {/* Shine */}
+                    <g clipPath="url(#clipLogo)">
+                        <rect className="shine" x="-60" y="0" width="40" height="80" fill="url(#shine)" transform="rotate(25)" />
+                    </g>
+                </svg>
                 <div>
                     <div className="text-sm font-semibold text-white">
                         NexFlow
