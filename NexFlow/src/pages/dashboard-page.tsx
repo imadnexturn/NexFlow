@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Download, Filter, Check, X } from 'lucide-react'
-import { useGetAllocationsQuery } from '@/store/api/allocations-api'
+import { useGetAllocationsQuery, useExportAllocationsMutation } from '@/store/api/allocations-api'
 import { useAuth } from 'react-oidc-context'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { setStatusFilter } from '@/store/slices/dashboard-filters-slice'
@@ -17,7 +17,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useExportEmployeesMutation } from '@/store/api/employees-api'
 import { toast } from 'sonner'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 import type { Allocation } from '@/types'
@@ -149,15 +148,18 @@ function DashboardPage() {
         direction: 'asc',
     })
 
-    const [exportEmployees, { isLoading: isExporting }] = useExportEmployeesMutation()
+    // Current user's identity from Keycloak token
+    const empCode = auth.user?.profile?.empCode as string | undefined
+
+    const [exportAllocations, { isLoading: isExporting }] = useExportAllocationsMutation()
 
     const handleExport = async (ext: 'pdf' | 'xls') => {
         try {
-            const blob = await exportEmployees({ ext }).unwrap()
+            const blob = await exportAllocations({ ext, empCode }).unwrap()
             const url = window.URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = url
-            a.download = `employees-export-${new Date().toISOString().split('T')[0]}.${ext}`
+            a.download = `allocations-export-${new Date().toISOString().split('T')[0]}.${ext}`
             document.body.appendChild(a)
             a.click()
             a.remove()
@@ -174,9 +176,6 @@ function DashboardPage() {
         }))
         setPage(1)
     }
-
-    // Current user's identity from Keycloak token
-    const empCode = auth.user?.profile?.empCode as string | undefined
 
     // RTK Query hooks
     const {

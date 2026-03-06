@@ -106,6 +106,27 @@ const allocationsApi = apiSlice.injectEndpoints({
                 },
             },
         ),
+        exportAllocations: builder.mutation<
+            Blob,
+            GetAllocationsArgs & { ext: 'pdf' | 'xls'; columnMap?: Record<string, string> }
+        >({
+            query: ({ ext, columnMap, ...searchArgs }) => {
+                const params = new URLSearchParams()
+                params.set('ext', ext)
+                if (searchArgs.empCode) params.set('empCode', searchArgs.empCode)
+                if (searchArgs.projectManagerEmpCode) params.set('projectManagerEmpCode', searchArgs.projectManagerEmpCode)
+                if (searchArgs.status && searchArgs.status !== 'All') params.set('status', searchArgs.status)
+                if (searchArgs.billable !== undefined) params.set('billable', String(searchArgs.billable))
+                if (searchArgs.sort) params.set('sort', searchArgs.sort)
+
+                return {
+                    url: `/allocations/export?${params.toString()}`,
+                    method: 'POST',
+                    body: columnMap || {},
+                    responseHandler: (response) => response.blob(),
+                }
+            },
+        }),
     }),
 })
 
@@ -117,4 +138,5 @@ export const {
     useDeleteAllocationMutation,
     useCheckCapacityQuery,
     useLazyCheckCapacityQuery,
+    useExportAllocationsMutation,
 } = allocationsApi
