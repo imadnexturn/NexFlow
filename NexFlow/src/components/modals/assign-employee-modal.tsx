@@ -264,8 +264,8 @@ function AssignEmployeeModal({
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {fromDate
-                                            ? format(fromDate, 'MM/dd/yyyy')
-                                            : 'mm/dd/yyyy'}
+                                            ? format(fromDate, 'dd/MM/yyyy')
+                                            : 'dd/mm/yyyy'}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent
@@ -296,8 +296,8 @@ function AssignEmployeeModal({
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {toDate
-                                            ? format(toDate, 'MM/dd/yyyy')
-                                            : 'mm/dd/yyyy'}
+                                            ? format(toDate, 'dd/MM/yyyy')
+                                            : 'dd/mm/yyyy'}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent
