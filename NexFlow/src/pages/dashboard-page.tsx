@@ -136,6 +136,18 @@ function DashboardPage() {
     )
 
     const [page, setPage] = useState(1)
+    const [sortConfig, setSortConfig] = useState<{ key: keyof Allocation & string; direction: 'asc' | 'desc' }>({
+        key: 'status',
+        direction: 'asc',
+    })
+
+    const handleSort = (key: keyof Allocation & string) => {
+        setSortConfig((current) => ({
+            key,
+            direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+        }))
+        setPage(1)
+    }
 
     // Current user's identity from Keycloak token
     const empCode = auth.user?.profile?.empCode as string | undefined
@@ -149,6 +161,7 @@ function DashboardPage() {
             empCode, // Required to fetch exclusively MY allocations
             page,
             limit: DEFAULT_PAGE_SIZE,
+            sort: sortConfig.direction === 'desc' ? `-${sortConfig.key}` : sortConfig.key,
             // Only send status parameter if not "All"
             status: statusFilter === 'All' ? undefined : statusFilter,
         },
@@ -275,6 +288,8 @@ function DashboardPage() {
                         pageSize: DEFAULT_PAGE_SIZE,
                     }}
                     onPageChange={setPage}
+                    onSort={handleSort}
+                    currentSort={sortConfig}
                 />
             </section>
         </div>

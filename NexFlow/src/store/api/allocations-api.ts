@@ -22,6 +22,7 @@ interface GetAllocationsArgs {
     billable?: boolean
     page?: number
     limit?: number
+    sort?: string
 }
 
 const allocationsApi = apiSlice.injectEndpoints({
@@ -37,12 +38,14 @@ const allocationsApi = apiSlice.injectEndpoints({
                 billable,
                 page = 1,
                 limit = 10,
+                sort,
             }) => {
                 const params = new URLSearchParams()
                 if (empCode) params.set('empCode', empCode)
                 if (projectManagerEmpCode) params.set('projectManagerEmpCode', projectManagerEmpCode)
                 if (status && status !== 'All') params.set('status', status)
                 if (billable !== undefined) params.set('billable', String(billable))
+                if (sort) params.set('sort', sort)
                 params.set('page', String(page))
                 params.set('limit', String(limit))
                 return `/allocations?${params.toString()}`

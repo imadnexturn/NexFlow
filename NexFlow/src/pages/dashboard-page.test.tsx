@@ -108,7 +108,7 @@ describe('DashboardPage', () => {
                 'Billable',
                 'From Date',
                 'To Date',
-                'Status',
+                'Status↑',
             ]),
         )
     })

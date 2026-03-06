@@ -36,6 +36,8 @@ interface DataTableProps<T> {
     onPageChange?: (page: number) => void
     onRowClick?: (row: T) => void
     emptyMessage?: string
+    onSort?: (key: keyof T & string) => void
+    currentSort?: { key: keyof T & string; direction: 'asc' | 'desc' }
 }
 
 /**
@@ -49,6 +51,8 @@ function DataTable<T>({
     onPageChange,
     onRowClick,
     emptyMessage = 'No data available',
+    onSort,
+    currentSort,
 }: DataTableProps<T>) {
     const startIndex = pagination
         ? (pagination.page - 1) * pagination.pageSize + 1
@@ -65,14 +69,25 @@ function DataTable<T>({
             <Table>
                 <TableHeader>
                     <TableRow className="bg-slate-50 hover:bg-slate-50">
-                        {columns.map((col) => (
-                            <TableHead
-                                key={col.accessorKey}
-                                className="text-xs font-medium uppercase tracking-wider text-slate-500 px-4 py-3"
-                            >
-                                {col.header}
-                            </TableHead>
-                        ))}
+                        {columns.map((col) => {
+                            const isSorted = currentSort?.key === col.accessorKey;
+                            return (
+                                <TableHead
+                                    key={col.accessorKey}
+                                    className={`text-xs font-medium uppercase tracking-wider text-slate-500 px-4 py-3 ${onSort ? 'cursor-pointer select-none hover:text-slate-700' : ''}`}
+                                    onClick={() => onSort?.(col.accessorKey)}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        {col.header}
+                                        {isSorted && (
+                                            <span className="text-indigo-600">
+                                                {currentSort.direction === 'asc' ? '↑' : '↓'}
+                                            </span>
+                                        )}
+                                    </div>
+                                </TableHead>
+                            )
+                        })}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
