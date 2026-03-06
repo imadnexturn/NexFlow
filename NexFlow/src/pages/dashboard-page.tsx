@@ -11,6 +11,14 @@ import type { ColumnDef } from '@/components/shared/data-table'
 import AllocationProgressBar from '@/components/shared/allocation-progress-bar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useExportEmployeesMutation } from '@/store/api/employees-api'
+import { toast } from 'sonner'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 import type { Allocation } from '@/types'
 
@@ -141,6 +149,24 @@ function DashboardPage() {
         direction: 'asc',
     })
 
+    const [exportEmployees, { isLoading: isExporting }] = useExportEmployeesMutation()
+
+    const handleExport = async (ext: 'pdf' | 'xls') => {
+        try {
+            const blob = await exportEmployees({ ext }).unwrap()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `employees-export-${new Date().toISOString().split('T')[0]}.${ext}`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            window.URL.revokeObjectURL(url)
+        } catch {
+            toast.error('Failed to export report')
+        }
+    }
+
     const handleSort = (key: keyof Allocation & string) => {
         setSortConfig((current) => ({
             key,
@@ -219,10 +245,25 @@ function DashboardPage() {
                 actions={
                     <>
                         {/* SearchInput hidden due to backend search limitations on /allocations payload */}
-                        <Button className="bg-indigo-600 hover:bg-indigo-700">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export Report
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    className="bg-indigo-600 hover:bg-indigo-700"
+                                    disabled={isExporting}
+                                >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    {isExporting ? 'Exporting...' : 'Export Report'}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                                    Export as PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExport('xls')}>
+                                    Export as Excel (XLS)
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </>
                 }
             />

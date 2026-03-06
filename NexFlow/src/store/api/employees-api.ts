@@ -54,6 +54,30 @@ const employeesApi = apiSlice.injectEndpoints({
             query: (empCode) =>
                 `/employees/${encodeURIComponent(empCode)}`,
         }),
+        exportEmployees: builder.mutation<
+            Blob,
+            SearchEmployeesArgs & { ext: 'pdf' | 'xls'; columnMap?: Record<string, string> }
+        >({
+            query: ({ ext, columnMap, ...searchArgs }) => {
+                const params = new URLSearchParams()
+                params.set('ext', ext)
+                if (searchArgs.search) params.set('search', searchArgs.search)
+                if (searchArgs.role) params.set('role', searchArgs.role)
+                if (searchArgs.isActive !== undefined) {
+                    params.set('isActive', String(searchArgs.isActive))
+                }
+                if (searchArgs.benchOnly) params.set('benchOnly', 'true')
+                if (searchArgs.windowFrom) params.set('windowFrom', searchArgs.windowFrom)
+                if (searchArgs.windowTo) params.set('windowTo', searchArgs.windowTo)
+
+                return {
+                    url: `/employees/export?${params.toString()}`,
+                    method: 'POST',
+                    body: columnMap || {},
+                    responseHandler: (response) => response.blob(),
+                }
+            },
+        }),
     }),
 })
 
@@ -63,4 +87,5 @@ export const {
     useSearchEmployeesQuery,
     useLazySearchEmployeesQuery,
     useGetEmployeeByCodeQuery,
+    useExportEmployeesMutation,
 } = employeesApi
