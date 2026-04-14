@@ -1,23 +1,31 @@
-import type { Middleware, AnyAction } from '@reduxjs/toolkit'
-import { toast } from 'sonner'
+import type { ApiError } from "@/types";
+import type { Middleware } from "@reduxjs/toolkit";
+import { isFulfilled, isRejectedWithValue } from "@reduxjs/toolkit";
+import { toast } from "sonner";
 
 export const apiToastMiddleware: Middleware = () => (next) => (action) => {
-    const anyAction = action as AnyAction;
-
-    // Only show success toasts for mutations, not queries
-    if (anyAction.type?.endsWith('/fulfilled')) {
-        const isMutation = anyAction.meta?.arg?.type === 'mutation'
-        if (isMutation) {
-            const message = anyAction.payload?.message || 'Operation successful'
-            toast.success(message)
-        }
+  // ── Mutation success ──────────────────────────────────────────────────────
+  // isFulfilled matches every fulfilled RTK Query action. We gate on
+  // meta.arg.type === 'mutation' to skip query results (no toast needed).
+  if (isFulfilled(action)) {
+    const argType = (action.meta as { arg?: { type?: string } }).arg?.type;
+    if (argType === "mutation") {
+      const message =
+        (action.payload as { message?: string } | undefined)?.message ??
+        "Operation successful";
+      toast.success(message, { richColors: true });
     }
+  }
 
-    // Always show error toasts for rejected RTK Query actions (both queries and mutations)
-    if (anyAction.type?.endsWith('/rejected')) {
-        const message = anyAction.payload?.data?.message || 'An error occurred during the request'
-        toast.error(message)
-    }
+  // ── Mutation / query failure ───────────────────────────────────────────────
+  // isRejectedWithValue means fetchBaseQuery received a non-2xx HTTP response
+  // and put the parsed JSON body in `payload.data` (RFC 7807 ProblemDetails).
+  if (isRejectedWithValue(action)) {
+    const data = (action.payload as { data?: ApiError } | undefined)?.data;
+    const message =
+      data?.detail ?? data?.title ?? "An error occurred during the request";
+    toast.error(message, { richColors: true });
+  }
 
-    return next(action)
-}
+  return next(action);
+};

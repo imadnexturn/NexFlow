@@ -1,144 +1,129 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { toast } from 'sonner'
-import { apiToastMiddleware } from './api-toast-middleware'
-import { isRejectedWithValue, isFulfilled } from '@reduxjs/toolkit'
-import type { MiddlewareAPI, Dispatch, AnyAction } from '@reduxjs/toolkit'
+import type { MiddlewareAPI } from "@reduxjs/toolkit";
+import { toast } from "sonner";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { apiToastMiddleware } from "./api-toast-middleware";
 
-// Mock sonner toast
-vi.mock('sonner', () => ({
-    toast: {
-        success: vi.fn(),
-        error: vi.fn(),
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+// ─── Helpers that build properly shaped RTK action objects ────────────────────
+// isFulfilled / isRejectedWithValue check action.meta.requestStatus, not the
+// type string, so we must include it for the guards to fire.
+
+function fulfilledAction(argType: "mutation" | "query", payload: unknown) {
+  return {
+    type: `api/execute${argType === "mutation" ? "Mutation" : "Query"}/fulfilled`,
+    meta: {
+      arg: { type: argType },
+      requestStatus: "fulfilled",
+      requestId: "test-id",
     },
-}))
+    payload,
+  };
+}
 
-describe('apiToastMiddleware', () => {
-    let store: MiddlewareAPI
-    let next: Dispatch
-    let invoke: (action: AnyAction) => void
+function rejectedWithValueAction(payload: unknown) {
+  return {
+    type: "api/executeMutation/rejected",
+    meta: {
+      arg: { type: "mutation" },
+      requestStatus: "rejected",
+      rejectedWithValue: true,
+      requestId: "test-id",
+    },
+    payload,
+    error: { message: "Rejected" },
+  };
+}
 
-    beforeEach(() => {
-        vi.clearAllMocks()
-        store = {
-            getState: vi.fn(() => ({})),
-            dispatch: vi.fn(),
-        }
-        next = vi.fn()
-        invoke = (action: AnyAction) => apiToastMiddleware(store)(next)(action)
-    })
+function rejectedQueryAction(payload: unknown) {
+  return {
+    type: "api/executeQuery/rejected",
+    meta: {
+      arg: { type: "query" },
+      requestStatus: "rejected",
+      rejectedWithValue: true,
+      requestId: "test-id",
+    },
+    payload,
+    error: { message: "Rejected" },
+  };
+}
 
-    it('passes actions to the next middleware', () => {
-        const action = { type: 'TEST_ACTION' }
-        invoke(action)
-        expect(next).toHaveBeenCalledWith(action)
-    })
+// ─── Tests ────────────────────────────────────────────────────────────────────
 
-    describe('when a mutation is fulfilled', () => {
-        it('shows a success toast if the action is a fulfilled mutation', () => {
-            const action = {
-                type: 'api/executeMutation/fulfilled',
-                meta: {
-                    arg: {
-                        type: 'mutation',
-                        endpointName: 'createProject', // Arbitrary endpoint
-                    },
-                },
-                payload: {
-                    message: 'Project created successfully', // Mock payload structure
-                },
-            }
+describe("apiToastMiddleware", () => {
+  let store: MiddlewareAPI;
+  let next: (action: unknown) => unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let invoke: (action: any) => void;
 
-            // Simulate what RTK Query's isFulfilled would match
-            // We use standard action simulation. The middleware itself will need to check isFulfilled(action) and if it's a mutation
-            invoke(action)
+  beforeEach(() => {
+    vi.clearAllMocks();
+    store = { getState: vi.fn(() => ({})), dispatch: vi.fn() };
+    next = vi.fn();
+    invoke = (action) => apiToastMiddleware(store)(next)(action);
+  });
 
-            // The middleware should extract either the message from payload or provide a generic one
-            expect(toast.success).toHaveBeenCalledWith('Project created successfully')
-            expect(toast.success).toHaveBeenCalledTimes(1)
-        })
+  it("always forwards the action to next", () => {
+    const action = { type: "SOME_ACTION" };
+    invoke(action);
+    expect(next).toHaveBeenCalledWith(action);
+  });
 
-        it('does not show a success toast for queries (only mutations)', () => {
-            const action = {
-                type: 'api/executeQuery/fulfilled',
-                meta: {
-                    arg: {
-                        type: 'query',
-                        endpointName: 'getProjects',
-                    },
-                },
-                payload: {},
-            }
+  describe("mutation fulfilled", () => {
+    it("shows a success toast with the payload message", () => {
+      invoke(fulfilledAction("mutation", { message: "Project created" }));
+      expect(toast.success).toHaveBeenCalledWith(
+        "Project created",
+        expect.any(Object),
+      );
+      expect(toast.success).toHaveBeenCalledTimes(1);
+    });
 
-            invoke(action)
+    it('falls back to "Operation successful" when payload has no message', () => {
+      invoke(fulfilledAction("mutation", {}));
+      expect(toast.success).toHaveBeenCalledWith(
+        "Operation successful",
+        expect.any(Object),
+      );
+    });
 
-            expect(toast.success).not.toHaveBeenCalled()
-        })
-    })
+    it("does NOT show a success toast for a fulfilled query", () => {
+      invoke(fulfilledAction("query", {}));
+      expect(toast.success).not.toHaveBeenCalled();
+    });
+  });
 
-    describe('when a request is rejected with value', () => {
-        it('shows an error toast with the error message', () => {
-            const action = {
-                type: 'api/executeMutation/rejected',
-                meta: {
-                    arg: {
-                        type: 'mutation',
-                    },
-                },
-                payload: {
-                    data: {
-                        message: 'Custom error from backend',
-                    },
-                },
-            }
+  describe("rejected with value (HTTP error from server)", () => {
+    it("shows an error toast using ApiError.detail", () => {
+      invoke(rejectedWithValueAction({ data: { detail: "Not found" } }));
+      expect(toast.error).toHaveBeenCalledWith("Not found", expect.any(Object));
+    });
 
-            invoke(action)
+    it("falls back to ApiError.title when detail is absent", () => {
+      invoke(rejectedWithValueAction({ data: { title: "Bad Request" } }));
+      expect(toast.error).toHaveBeenCalledWith(
+        "Bad Request",
+        expect.any(Object),
+      );
+    });
 
-            expect(toast.error).toHaveBeenCalledWith('Custom error from backend')
-            expect(toast.error).toHaveBeenCalledTimes(1)
-        })
+    it("falls back to the generic message when payload carries no ApiError", () => {
+      invoke(rejectedWithValueAction({ status: 500 }));
+      expect(toast.error).toHaveBeenCalledWith(
+        "An error occurred during the request",
+        expect.any(Object),
+      );
+    });
 
-        it('shows an error toast with a fallback message if payload is generic', () => {
-            const action = {
-                type: 'api/executeMutation/rejected',
-                meta: {
-                    arg: {
-                        type: 'mutation',
-                    },
-                },
-                // no specific data.message
-                payload: {
-                    status: 500
-                },
-                error: {
-                    message: 'Internal Server Error'
-                }
-            }
-
-            invoke(action)
-
-            expect(toast.error).toHaveBeenCalledWith('An error occurred during the request')
-        })
-    })
-
-    describe('when a query fails', () => {
-        it('shows an error toast even for queries', () => {
-            const action = {
-                type: 'api/executeQuery/rejected',
-                meta: {
-                    arg: {
-                        type: 'query',
-                    },
-                },
-                payload: {
-                    data: {
-                        message: 'Failed to fetch projects',
-                    }
-                },
-            }
-
-            invoke(action)
-
-            expect(toast.error).toHaveBeenCalledWith('Failed to fetch projects')
-        })
-    })
-})
+    it("shows an error toast for a rejected query too", () => {
+      invoke(rejectedQueryAction({ data: { detail: "Fetch failed" } }));
+      expect(toast.error).toHaveBeenCalledWith(
+        "Fetch failed",
+        expect.any(Object),
+      );
+    });
+  });
+});
